@@ -1,0 +1,31 @@
+{
+  "features": [
+    "calories_slot",
+    "protein_slot",
+    "fat_slot",
+    "carbs_slot",
+    "sodium_slot_mg",
+    "slot_portion_g",
+    "diet_enc",
+    "meal_time_enc",
+    "dish_type_enc"
+  ],
+  "label_classes": [
+    "diabetes",
+    "healthy",
+    "hypertension",
+    "obesity"
+  ],
+  "rf_test_acc": 0.9767441860465116,
+  "rf_cv_mean": 0.9336655592469546,
+  "rf_cv_std": 0.09929448984862138,
+  "gb_test_acc": 0.9534883720930233,
+  "gb_cv_mean": 0.9287929125138428,
+  "gb_cv_std": 0.11961137729004193,
+  "gb_best_params": {
+    "learning_rate": 0.05,
+    "max_depth": 3,
+    "n_estimators": 100
+  },
+  "winning_model": "rf"
+}
