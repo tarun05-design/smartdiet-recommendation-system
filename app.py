@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="SmartDiet — Personal Nutrition Planner",
     page_icon="🍎",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # =========================
@@ -673,7 +673,7 @@ def run_ml_prediction(condition, diet_pref):
 
 
 def render_hero(name):
-    greeting = f"Hey {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
+    greeting = f"Hi {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
     st.markdown(f"""
     <div class='sd-hero'>
         <div class='sd-eyebrow'>Personalized meal planning</div>
@@ -720,6 +720,9 @@ def render_assessment_card(pred_label, pred_icon, pred_color, confidence_pct, as
     </div>
     """, unsafe_allow_html=True)
 
+
+if "show_plan" not in st.session_state:
+    st.session_state.show_plan = False
 
 with st.sidebar:
     st.markdown("""
@@ -786,38 +789,14 @@ with st.sidebar:
     diet_pref = diet_map[diet_sel]
 
     st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
-    go = st.button("✨ Generate Smart Plan", use_container_width=True)
+    if st.button("✨ Generate Smart Plan", use_container_width=True):
+        st.session_state.show_plan = True
 
 
 render_hero(name)
 
-if not go:
-    st.markdown("""
-    <div class='sd-grid-2'>
-        <div class='sd-card' style='padding:1.35rem;'>
-            <div class='sd-card-title'>What this app does</div>
-            <div style='display:flex; flex-direction:column; gap:0.8rem;'>
-                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
-                    SmartDiet builds a daily meal plan from your personal health profile and dietary preference.
-                </div>
-                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
-                    It estimates a calorie goal and recommends meals for breakfast, lunch, snack, and dinner.
-                </div>
-            </div>
-        </div>
-        <div class='sd-card' style='padding:1.35rem;'>
-            <div class='sd-card-title'>Why it is useful</div>
-            <div style='display:flex; flex-direction:column; gap:0.8rem;'>
-                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
-                    Nutrition numbers alone can feel confusing. SmartDiet converts them into meal choices people can understand.
-                </div>
-                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
-                    It makes daily planning easier by showing suitable meals and a clear nutrition summary in one place.
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+if not st.session_state.show_plan:
+    st.info("Enter your details in the left panel and click 'Generate Smart Plan' to see your personalized meals.")
     st.stop()
 
 
