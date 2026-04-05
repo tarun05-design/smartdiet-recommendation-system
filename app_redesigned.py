@@ -468,6 +468,23 @@ section[data-testid="stSidebar"] .stButton button:hover {
     line-height: 1.5;
 }
 
+/* ── Stat cards: nuclear option to prevent any override ── */
+.stat-card p {
+    color: inherit !important;
+}
+
+/* Fix p tags inside markdown — Streamlit sometimes makes them transparent */
+.stMarkdown p {
+    color: #1A2F2A !important;
+}
+
+/* These need to stay white always — re-override for dark cards */
+.hero-banner .stMarkdown p,
+.profile-card .stMarkdown p,
+.summary-card .stMarkdown p {
+    color: white !important;
+}
+
 .disclaimer {
     text-align: center;
     color: #999;
@@ -1036,14 +1053,15 @@ if best_per_slot:
 
     for col, val, lbl, icon in summary_items:
         col.markdown(f"""
-        <div style='background:white; border-radius:14px; padding:1rem;
-                    text-align:center; border:1.5px solid #C8E6C9;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-top:0.6rem;'>
-            <div style='font-size:1.5rem; line-height:1;'>{icon}</div>
-            <div style='font-size:1.35rem; font-weight:800; color:#1A2F2A !important;
-                        line-height:1.2; margin:0.3rem 0 0.1rem 0;'>{val}</div>
-            <div style='font-size:0.73rem; color:#444 !important;
-                        line-height:1.4; font-weight:600;'>{lbl}</div>
+        <div style='background:#FFFFFF; border-radius:14px; padding:1rem 0.6rem;
+                    text-align:center; border:2px solid #A5D6A7;
+                    box-shadow:0 3px 10px rgba(46,125,50,0.12); margin-top:0.6rem;'>
+            <p style='font-size:1.6rem; line-height:1; margin:0; padding:0;
+                      color:#1A2F2A !important;'>{icon}</p>
+            <p style='font-size:1.4rem; font-weight:800; margin:0.3rem 0 0.1rem 0;
+                      padding:0; color:#1A2F2A !important; line-height:1.2;'>{val}</p>
+            <p style='font-size:0.72rem; color:#2E7D32 !important; margin:0; padding:0;
+                      line-height:1.4; font-weight:700;'>{lbl}</p>
         </div>
         """, unsafe_allow_html=True)
 
