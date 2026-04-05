@@ -6,523 +6,485 @@ import json
 import os
 import warnings
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
 warnings.filterwarnings("ignore")
 
 st.set_page_config(
-    page_title="SmartDiet — Your Personal Meal Guide",
+    page_title="SmartDiet — Personal Nutrition Planner",
     page_icon="🍎",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# ── Custom CSS: warm, friendly, non-clinical feel ─────────────────────────────
+# =========================
+# THEME + DESIGN SYSTEM
+# =========================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
+
+:root {
+    --bg: #F6F8F7;
+    --surface: #FFFFFF;
+    --surface-2: #F1F5F3;
+    --text: #14221B;
+    --muted: #66756E;
+    --line: #E3EBE7;
+    --primary: #1DB954;
+    --primary-dark: #159447;
+    --primary-soft: #E8F7EE;
+    --accent: #FF6B35;
+    --danger-soft: #FFF2EE;
+    --warning-soft: #FFF8E8;
+    --shadow: 0 10px 30px rgba(20, 34, 27, 0.08);
+    --shadow-soft: 0 4px 14px rgba(20, 34, 27, 0.05);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+}
 
 html, body, [class*="css"] {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
-h1, h2, h3 {
-    font-family: 'Lora', serif;
-}
-
-/* ── Main background ── */
 .stApp {
-    background: #F4F7F4 !important;
+    background: linear-gradient(180deg, #F7FAF8 0%, #F3F7F5 100%) !important;
+    color: var(--text);
 }
 
-/* Base text color for light areas */
-.stApp p, .stApp span, .stApp label,
-.stApp li, .stApp small {
-    color: #1A2F2A;
+div.block-container {
+    max-width: 1220px;
+    padding-top: 1.25rem;
+    padding-bottom: 3rem;
 }
 
-/* ── Force white text inside all dark gradient cards ── */
-.hero-banner, .hero-banner *,
-.profile-card, .profile-card *,
-.assessment-card, .assessment-card *,
-.summary-card, .summary-card * {
-    color: white !important;
+/* Hide default top decorations */
+header[data-testid="stHeader"] {
+    background: transparent;
 }
 
-/* Re-override stApp rule specifically for dark card p and span tags */
-.hero-banner p, .hero-banner span,
-.profile-card p, .profile-card span,
-.assessment-card p, .assessment-card span,
-.summary-card p, .summary-card span {
-    color: white !important;
+[data-testid="stToolbar"] {
+    visibility: hidden;
+    height: 0;
+    position: fixed;
 }
 
-.profile-card h2, .summary-card h2  { color: #C8E6C9 !important; }
-.profile-pill                        { color: white !important; }
-
-/* ── Streamlit tab labels — force dark text on light bg ── */
-.stTabs [data-baseweb="tab-list"] {
-    background: #E8F5E9 !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-    gap: 2px !important;
-}
-
-.stTabs [data-baseweb="tab"] {
-    background: transparent !important;
-    color: #2E7D32 !important;
-    font-weight: 700 !important;
-    font-size: 0.92rem !important;
-    border-radius: 8px !important;
-    padding: 0.5rem 1rem !important;
-}
-
-.stTabs [aria-selected="true"] {
-    background: white !important;
-    color: #1A2F2A !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-}
-
-/* ── Expander: force white background + dark text, override all themes ── */
-.streamlit-expanderHeader,
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] > div:first-child {
-    background: white !important;
-    background-color: white !important;
-    color: #1A2F2A !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    border-radius: 12px !important;
-    border: 1.5px solid #C8E6C9 !important;
-}
-
-.streamlit-expanderHeader:hover,
-[data-testid="stExpander"] summary:hover {
-    background: #F0FFF0 !important;
-    background-color: #F0FFF0 !important;
-    border-color: #4CAF50 !important;
-}
-
-.streamlit-expanderHeader p,
-.streamlit-expanderHeader span,
-.streamlit-expanderHeader svg,
-[data-testid="stExpander"] summary p,
-[data-testid="stExpander"] summary span,
-[data-testid="stExpander"] summary svg {
-    color: #1A2F2A !important;
-    fill: #1A2F2A !important;
-}
-
-.streamlit-expanderContent,
-[data-testid="stExpander"] > div:last-child {
-    background: #FAFFFE !important;
-    background-color: #FAFFFE !important;
-    border: 1.5px solid #C8E6C9 !important;
-    border-top: none !important;
-    border-radius: 0 0 12px 12px !important;
-    color: #1A2F2A !important;
-}
-
-.streamlit-expanderContent *,
-[data-testid="stExpander"] > div:last-child * {
-    color: #1A2F2A !important;
-}
-
-/* ── st.dataframe / table text ── */
-.stDataFrame, .stTable {
-    color: #1A2F2A !important;
-}
-
-/* ── st.metric ── */
-[data-testid="stMetricValue"] {
-    color: #1A2F2A !important;
-    font-weight: 800 !important;
-}
-
-[data-testid="stMetricLabel"] {
-    color: #555 !important;
-}
-
-/* ── st.caption ── */
-.stApp .stCaption, .stApp small {
-    color: #777 !important;
-}
-
-/* ── st.info / success / warning ── */
-.stAlert {
-    border-radius: 12px !important;
-}
-
-/* ── Sidebar ── */
+/* Sidebar */
 section[data-testid="stSidebar"] {
-    background: #1A2F2A !important;
+    background: linear-gradient(180deg, #0F1E18 0%, #153126 100%) !important;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    width: 370px !important;
 }
 
 section[data-testid="stSidebar"] * {
-    color: #E8F5E9 !important;
+    color: #F4FCF7 !important;
+}
+
+section[data-testid="stSidebar"] .block-container {
+    padding-top: 1.25rem;
+    padding-bottom: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Inputs */
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stSlider label,
+section[data-testid="stSidebar"] .stTextInput label,
+section[data-testid="stSidebar"] .stRadio label,
+section[data-testid="stSidebar"] .stNumberInput label {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: #B9D9C7 !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 section[data-testid="stSidebar"] input,
-section[data-testid="stSidebar"] select {
-    background: rgba(255,255,255,0.1) !important;
-    color: white !important;
-    border-color: rgba(255,255,255,0.2) !important;
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] [data-baseweb="select"] > div,
+section[data-testid="stSidebar"] [data-baseweb="input"] > div,
+section[data-testid="stSidebar"] [data-baseweb="base-input"] {
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
 }
 
-section[data-testid="stSidebar"] .stSlider label,
-section[data-testid="stSidebar"] .stNumberInput label,
-section[data-testid="stSidebar"] .stTextInput label,
-section[data-testid="stSidebar"] .stSelectbox label,
-section[data-testid="stSidebar"] .stRadio label {
-    color: #A5D6A7 !important;
-    font-weight: 700 !important;
-    font-size: 0.82rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+section[data-testid="stSidebar"] input {
+    color: #FFFFFF !important;
+}
+
+section[data-testid="stSidebar"] [data-baseweb="radio"] > div {
+    gap: 0.55rem;
 }
 
 section[data-testid="stSidebar"] .stButton button {
-    background: #4CAF50 !important;
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary) 0%, #41C96C 100%) !important;
     color: white !important;
-    border-radius: 50px !important;
-    font-family: 'Nunito', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 1rem !important;
-    padding: 0.6rem 1.2rem !important;
-    border: none !important;
-    width: 100% !important;
-    margin-top: 0.5rem !important;
-    transition: background 0.2s !important;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 10px 24px rgba(29, 185, 84, 0.26);
 }
 
 section[data-testid="stSidebar"] .stButton button:hover {
-    background: #388E3C !important;
+    background: linear-gradient(90deg, var(--primary-dark) 0%, #2FB85A 100%) !important;
+    transform: translateY(-1px);
 }
 
-.hero-banner {
-    background: linear-gradient(135deg, #1A2F2A 0%, #2E7D32 60%, #388E3C 100%);
-    border-radius: 20px;
-    padding: 2.5rem 3rem;
-    color: white;
-    margin-bottom: 1.5rem;
+/* Main tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background: transparent !important;
+    gap: 0.6rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.75rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    padding: 0.7rem 1.15rem;
+    background: #EDF3EF !important;
+    border-radius: 999px !important;
+    color: #355044 !important;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.stTabs [aria-selected="true"] {
+    background: #14221B !important;
+    color: #FFFFFF !important;
+}
+
+/* Expanders */
+[data-testid="stExpander"] {
+    border: none !important;
+    background: transparent !important;
+}
+
+[data-testid="stExpander"] summary {
+    background: #FFFFFF !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 18px !important;
+    padding: 0.8rem 1rem !important;
+    box-shadow: var(--shadow-soft);
+}
+
+[data-testid="stExpander"] > div:last-child {
+    background: #FFFFFF !important;
+    border: 1px solid var(--line) !important;
+    border-top: none !important;
+    border-radius: 0 0 18px 18px !important;
+    padding: 0.4rem 0.35rem 0.8rem 0.35rem;
+}
+
+/* Generic cards */
+.sd-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft);
+}
+
+.sd-hero {
     position: relative;
     overflow: hidden;
+    padding: 2rem 2rem 1.8rem 2rem;
+    background: linear-gradient(135deg, #14221B 0%, #1B3D2E 52%, #1DB954 100%);
+    border-radius: 28px;
+    color: white;
+    box-shadow: 0 18px 40px rgba(20, 34, 27, 0.20);
 }
 
-.hero-banner::after {
+.sd-hero::after {
     content: '🍎';
-    font-size: 120px;
     position: absolute;
-    right: 2.5rem;
+    right: 2rem;
     top: 50%;
     transform: translateY(-50%);
-    opacity: 0.18;
+    font-size: 6rem;
+    opacity: 0.15;
 }
 
-.hero-title {
-    font-family: 'Lora', serif;
-    font-size: 2.8rem;
-    font-weight: 600;
-    margin: 0 0 0.3rem 0;
-    line-height: 1.2;
-}
-
-.hero-sub {
-    font-size: 1.1rem;
-    opacity: 0.85;
-    margin: 0;
-    font-weight: 400;
-}
-
-.welcome-step {
-    background: white;
-    border-radius: 16px;
-    padding: 1.6rem 2rem;
-    border-left: 5px solid #4CAF50;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-bottom: 1rem;
-}
-
-.welcome-step h3 {
-    margin: 0 0 0.4rem 0;
-    color: #1A2F2A !important;
-    font-size: 1.1rem;
-}
-
-.welcome-step p {
-    margin: 0;
-    color: #444 !important;
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-
-.profile-card {
-    background: linear-gradient(135deg, #1A2F2A, #2E7D32);
-    border-radius: 20px;
-    padding: 1.8rem 2rem;
-    color: white;
-    margin-bottom: 1.5rem;
-}
-
-.profile-card h2 {
-    font-family: 'Lora', serif;
-    font-size: 1.6rem;
-    margin: 0 0 1rem 0;
-    color: #C8E6C9;
-}
-
-.profile-pill {
+.sd-eyebrow {
     display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
     background: rgba(255,255,255,0.15);
-    border-radius: 50px;
-    padding: 0.35rem 1rem;
-    margin: 0.25rem 0.2rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    backdrop-filter: blur(4px);
-}
-
-.fitness-badge {
-    display: inline-block;
-    border-radius: 12px;
-    padding: 0.8rem 1.4rem;
-    font-weight: 700;
-    font-size: 1rem;
-    margin-top: 0.5rem;
-}
-
-.assessment-card {
-    border-radius: 20px;
-    padding: 2rem;
-    text-align: center;
-    color: white;
-    font-family: 'Lora', serif;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
-.assessment-icon {
-    font-size: 3.5rem;
-    display: block;
-    margin-bottom: 0.6rem;
-}
-
-.assessment-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin: 0 0 0.3rem 0;
-}
-
-.assessment-msg {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0;
-    font-family: 'Nunito', sans-serif;
-    line-height: 1.5;
-}
-
-.confidence-bar-wrap {
-    background: rgba(255,255,255,0.25);
-    border-radius: 50px;
-    height: 10px;
-    margin: 1rem auto 0.3rem;
-    width: 80%;
-    overflow: hidden;
-}
-
-.confidence-bar-fill {
-    height: 100%;
-    border-radius: 50px;
-    background: white;
-}
-
-.confidence-label {
-    font-size: 0.85rem;
-    opacity: 0.85;
-    font-family: 'Nunito', sans-serif;
-}
-
-.meal-plan-header {
-    background: white;
-    border-radius: 20px;
-    padding: 1.4rem 2rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    border: 2px solid #E8F5E9;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.meal-target-badge {
-    background: #E8F5E9;
-    color: #2E7D32;
-    border-radius: 50px;
-    padding: 0.3rem 1rem;
-    font-weight: 700;
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-
-.meal-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.4rem 1.6rem;
-    border: 1.5px solid #E8F5E9;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-    margin-bottom: 0.8rem;
-    transition: box-shadow 0.2s;
-}
-
-.meal-card:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.09);
-}
-
-.meal-card-title {
-    font-family: 'Lora', serif;
-    font-size: 1.15rem;
-    color: #1A2F2A;
-    font-weight: 600;
-    margin: 0 0 0.2rem 0;
-}
-
-.meal-card-sub {
-    font-size: 0.88rem;
-    color: #777;
-    margin: 0 0 0.8rem 0;
-}
-
-.nutrient-pill {
-    display: inline-block;
-    background: #E8F5E9;
-    border: 1.5px solid #A5D6A7;
-    border-radius: 8px;
-    padding: 0.3rem 0.7rem;
-    margin: 0.2rem;
-    font-size: 0.83rem;
-    color: #1B5E20 !important;
-    font-weight: 700;
-}
-
-.best-pick-banner {
-    background: linear-gradient(90deg, #2E7D32, #4CAF50);
-    color: white !important;
-    border-radius: 8px;
-    padding: 0.3rem 1rem;
     font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.9rem;
+}
+
+.sd-hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.35rem;
+    line-height: 1.12;
+    margin: 0 0 0.55rem 0;
+}
+
+.sd-hero-sub {
+    max-width: 650px;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.88);
+    margin: 0;
+}
+
+.sd-grid-2 {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.sd-profile {
+    padding: 1.25rem;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F9FCFA 100%);
+}
+
+.sd-card-title {
+    font-size: 1.25rem;
     font-weight: 800;
-    display: inline-block;
-    margin-bottom: 0.6rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 1rem 0;
 }
 
-.summary-card {
-    background: linear-gradient(135deg, #1A2F2A, #2E7D32);
-    border-radius: 20px;
-    padding: 2rem;
-    color: white !important;
-    margin-top: 1.5rem;
+.sd-pill-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
 }
 
-.summary-card h2 {
-    font-family: 'Lora', serif;
-    color: #C8E6C9 !important;
-    margin: 0 0 1.2rem 0;
-    font-size: 1.5rem;
+.sd-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--surface-2);
+    color: #244236;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 700;
 }
 
-.summary-num {
+.sd-goal {
+    background: linear-gradient(180deg, #F3FBF5 0%, #ECF8F0 100%);
+    border: 1px solid #DCEFE3;
+    border-radius: 18px;
+    padding: 1rem 1rem;
+}
+
+.sd-goal-big {
     font-size: 2rem;
     font-weight: 800;
+    color: var(--text);
     line-height: 1;
-    color: white !important;
 }
 
-.summary-label {
-    font-size: 0.8rem;
-    color: #A5D6A7 !important;
-    margin-top: 0.2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+.sd-goal-sub {
+    margin-top: 0.35rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+    line-height: 1.55;
 }
 
-.guideline-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.6rem 2rem;
-    border-left: 5px solid #4CAF50;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-top: 1.2rem;
+.sd-assessment {
+    padding: 1.25rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.guideline-card h3 {
-    color: #1A2F2A !important;
+.sd-assessment h3 {
+    margin: 0;
     font-size: 1.1rem;
-    margin: 0 0 0.8rem 0;
+    font-weight: 800;
 }
 
-.guideline-tip {
+.sd-assessment-main {
+    margin-top: 0.75rem;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.sd-assessment-text {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    opacity: 0.96;
+}
+
+.sd-progress {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.24);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.sd-progress > div {
+    height: 100%;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.95);
+}
+
+.sd-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.15rem;
+    margin-bottom: 0.9rem;
+}
+
+.sd-section-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+}
+
+.sd-section-sub {
+    font-size: 0.94rem;
+    color: var(--muted);
+    margin-top: 0.22rem;
+}
+
+.sd-badge {
+    background: var(--primary-soft);
+    color: #177A3F;
+    border-radius: 999px;
+    padding: 0.55rem 0.9rem;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.sd-meal-banner {
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+    background: linear-gradient(90deg, #F1F9F4 0%, #FFFFFF 100%);
+    border: 1px solid #DCEFE3;
+    margin-bottom: 1rem;
+}
+
+.sd-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.9rem;
+    margin-top: 0.65rem;
+}
+
+.sd-stat {
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 1rem 0.9rem;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+}
+
+.sd-stat-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.sd-stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 0.45rem;
+    line-height: 1;
+}
+
+.sd-stat-label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 700;
+    margin-top: 0.42rem;
+    line-height: 1.45;
+}
+
+.sd-alert {
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    font-size: 1rem;
+    line-height: 1.65;
+    border-left: 6px solid;
+    margin-top: 1rem;
+}
+
+.sd-tips {
+    padding: 1.2rem;
+}
+
+.sd-tip {
     display: flex;
     align-items: flex-start;
-    gap: 0.6rem;
-    margin-bottom: 0.6rem;
+    gap: 0.8rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px dashed var(--line);
     font-size: 0.95rem;
-    color: #333 !important;
-    line-height: 1.5;
+    color: #29463A;
+    line-height: 1.65;
 }
 
-/* ── Stat cards: nuclear option to prevent any override ── */
-.stat-card p {
-    color: inherit !important;
+.sd-tip:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
-/* Fix p tags inside ALL Streamlit markdown areas */
-.stMarkdown p {
-    color: #1A2F2A !important;
-}
-
-/* Re-override for dark cards — higher specificity, must come AFTER stMarkdown */
-div.hero-banner p,
-div.hero-banner .stMarkdown p,
-div.profile-card p,
-div.profile-card .stMarkdown p,
-div.summary-card p,
-div.summary-card .stMarkdown p,
-div.assessment-card p,
-div.assessment-card .stMarkdown p {
-    color: white !important;
-}
-
-.disclaimer {
+.sd-footer-note {
+    margin-top: 1.5rem;
     text-align: center;
-    color: #999;
-    font-size: 0.82rem;
-    margin-top: 2rem;
-    padding: 1rem;
-    border-top: 1px solid #E8F0E8;
+    font-size: 0.85rem;
+    color: #728078;
 }
 
-.progress-track {
-    background: rgba(255,255,255,0.2);
-    border-radius: 50px;
-    height: 8px;
-    width: 100%;
-    margin: 0.4rem 0;
-    overflow: hidden;
+@media (max-width: 1100px) {
+    .sd-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .sd-metric-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.progress-fill {
-    height: 100%;
-    border-radius: 50px;
-    background: #69F0AE;
-    transition: width 0.6s ease;
+@media (max-width: 700px) {
+    div.block-container {
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+    .sd-hero {
+        padding: 1.35rem;
+    }
+
+    .sd-hero-title {
+        font-size: 2.1rem;
+    }
+
+    .sd-metric-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ── Backend: load models (unchanged) ─────────────────────────────────────────
+# =========================
+# BACKEND
+# =========================
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
 
 @st.cache_resource
@@ -541,7 +503,7 @@ def load_all():
 
 rf, gb, scaler, le_target, le_diet, le_meal, le_dish, meals_df, meta = load_all()
 
-# ── BMR-based daily calorie calculator (Mifflin-St Jeor + condition adjustment) ──
+
 def calculate_daily_calories(weight, height, age, gender, condition):
     if gender == "Male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
@@ -549,7 +511,6 @@ def calculate_daily_calories(weight, height, age, gender, condition):
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
 
     tdee = round(bmr * 1.2)
-
     min_cal = 1500 if gender == "Male" else 1200
 
     if condition == "diabetes":
@@ -563,73 +524,66 @@ def calculate_daily_calories(weight, height, age, gender, condition):
 
     return round(target)
 
+
 SLOT_CALORIE_SPLIT = {
     "breakfast": 0.25,
-    "lunch":     0.35,
-    "snack":     0.10,
-    "dinner":    0.30,
+    "lunch": 0.35,
+    "snack": 0.10,
+    "dinner": 0.30,
 }
 
 SLOT_MEAL_TIME = {
     "breakfast": ["breakfast", "breakfast/dinner"],
-    "lunch":     ["lunch", "lunch/dinner"],
-    "snack":     ["snack"],
-    "dinner":    ["dinner", "lunch/dinner", "breakfast/dinner"],
+    "lunch": ["lunch", "lunch/dinner"],
+    "snack": ["snack"],
+    "dinner": ["dinner", "lunch/dinner", "breakfast/dinner"],
 }
 
 SLOT_CARB_LIMITS = {"diabetes": 55, "hypertension": 65, "obesity": 50, "healthy": 75}
-SLOT_FAT_LIMITS  = {"diabetes": 15, "hypertension": 15, "obesity": 10, "healthy": 20}
+SLOT_FAT_LIMITS = {"diabetes": 15, "hypertension": 15, "obesity": 10, "healthy": 20}
 
-# ── Friendly UI mappings ──────────────────────────────────────────────────────
 CONDITION_DISPLAY = {
-    "healthy":      ("Healthy",              "🌿", "#2E7D32", "#E8F5E9"),
-    "diabetes":     ("Managing Diabetes",    "🩸", "#C62828", "#FFEBEE"),
-    "hypertension": ("Managing Blood Pressure", "💙", "#1565C0", "#E3F2FD"),
-    "obesity":      ("Managing Weight",      "⚖️", "#6A1B9A", "#F3E5F5"),
+    "healthy": ("Healthy", "🌿", "#1DB954", "#EAF8EF"),
+    "diabetes": ("Managing Diabetes", "🩸", "#E6492D", "#FFF2EE"),
+    "hypertension": ("Managing Blood Pressure", "💙", "#2D7DF6", "#EDF4FF"),
+    "obesity": ("Managing Weight", "⚖️", "#8E44EC", "#F6F0FF"),
 }
 
 FITNESS_DISPLAY = {
-    "Slightly Slim": ("You're on the leaner side", "🌱", "#0277BD", "#E1F5FE"),
-    "Fit":           ("You're in great shape!",    "💪", "#2E7D32", "#E8F5E9"),
-    "Overweight":    ("A little above ideal weight","🌻", "#E65100", "#FFF3E0"),
-    "Obese":         ("Weight management recommended","🌸","#6A1B9A","#F3E5F5"),
+    "Slightly Slim": ("Lean profile", "🌱", "#2D7DF6", "#EDF6FF"),
+    "Fit": ("Great shape", "💪", "#1DB954", "#EAF8EF"),
+    "Overweight": ("Above ideal range", "🌤️", "#FF9F1C", "#FFF7E9"),
+    "Obese": ("Weight support recommended", "🌸", "#8E44EC", "#F6F0FF"),
 }
 
 CONDITION_TIPS = {
     "diabetes": [
-        ("🌾", "Choose ragi, oats, or brown rice instead of white rice — they digest slowly and keep your sugar steady."),
-        ("⏰", "Eat smaller meals every 3–4 hours rather than two big meals — this keeps your blood sugar level throughout the day."),
-        ("🚫", "Avoid sugary drinks, sweets, and packaged snacks. Even 'fruit juices' can spike your sugar quickly."),
-        ("💧", "Drink plenty of water and unsweetened buttermilk throughout the day."),
+        ("🌾", "Choose slower-digesting carbs like ragi, oats, and brown rice more often than polished rice."),
+        ("⏰", "Keep meal timing regular. Smaller, balanced meals help avoid sharp glucose spikes."),
+        ("🚫", "Limit sweets, packaged snacks, and fruit juices — they raise blood sugar quickly."),
+        ("💧", "Stay hydrated with water, buttermilk, and other unsweetened drinks."),
     ],
     "hypertension": [
-        ("🧂", "Go easy on salt. Avoid pickles, papadams, packaged chips, and processed foods — they're hidden salt bombs."),
-        ("🍌", "Eat potassium-rich foods daily — bananas, tender coconut water, and leafy greens help balance blood pressure."),
-        ("🚶", "Even a 20-minute walk daily can meaningfully reduce blood pressure over time."),
-        ("☕", "Limit tea and coffee to 1–2 cups a day. Too much caffeine can raise pressure."),
+        ("🧂", "Reduce pickles, papad, chips, and processed foods — most hidden sodium comes from these."),
+        ("🍌", "Add potassium-rich foods like banana, curd, greens, and coconut water when suitable."),
+        ("🚶", "A short daily walk can support healthier blood pressure over time."),
+        ("☕", "Moderate caffeine if you notice it affects your blood pressure."),
     ],
     "obesity": [
-        ("🍽️", "Use a smaller plate and eat slowly — it takes 20 minutes for your brain to realise you're full."),
-        ("🥚", "Include protein in every meal (eggs, dal, fish, paneer) — protein keeps you feeling full longer."),
-        ("🚫", "Cut down on deep-fried snacks, maida items, and sugary drinks — these are the biggest calorie sources."),
-        ("🚶", "Aim for at least 30 minutes of walking daily. It's free and very effective."),
+        ("🍽️", "Use portion-friendly plates and eat a little slower so fullness catches up naturally."),
+        ("🥚", "Include protein in each meal to stay full longer and reduce overeating."),
+        ("🚫", "Cut down deep-fried foods, sugar drinks, and heavily refined snacks first."),
+        ("🚶", "Pair your food plan with simple movement like walking or light exercise."),
     ],
     "healthy": [
-        ("🥗", "Fill half your plate with vegetables and dal — they're packed with nutrients and fibre."),
-        ("🥛", "Have a glass of buttermilk or a small bowl of curd daily — great for digestion."),
-        ("🌿", "Eat seasonal fruits and vegetables as much as possible — they're fresher, cheaper, and more nutritious."),
-        ("💧", "Drink at least 8 glasses of water a day. Staying hydrated keeps your energy up."),
+        ("🥗", "Build meals around vegetables, dal, curd, fruit, and consistent hydration."),
+        ("🥛", "Add a fermented dairy option like curd or buttermilk when it suits you."),
+        ("🌿", "Choose seasonal produce often — it is usually fresher, cheaper, and nutrient-dense."),
+        ("💧", "Good hydration improves energy, digestion, and appetite control."),
     ],
 }
 
-SLOT_FRIENDLY = {
-    "breakfast": ("🌅", "Morning Breakfast"),
-    "lunch":     ("☀️", "Afternoon Lunch"),
-    "snack":     ("🍵", "Evening Snack"),
-    "dinner":    ("🌙", "Night Dinner"),
-}
 
-# ── Backend helper functions (unchanged logic) ────────────────────────────────
 def get_bmi_category(bmi):
     if bmi < 18.5:
         return "Slightly Slim"
@@ -637,19 +591,19 @@ def get_bmi_category(bmi):
         return "Fit"
     elif bmi < 30.0:
         return "Overweight"
-    else:
-        return "Obese"
+    return "Obese"
+
 
 def get_diet_options(preference):
     if preference == "Vegetarian":
         return ["vegetarian"]
     elif preference == "Non-Vegetarian":
         return ["non_vegetarian"]
-    else:
-        return ["vegetarian", "non_vegetarian"]
+    return ["vegetarian", "non_vegetarian"]
+
 
 def recommend_for_slot(condition, diet_pref, slot, target_cal, tolerance=50):
-    diet_opts     = get_diet_options(diet_pref)
+    diet_opts = get_diet_options(diet_pref)
     allowed_times = SLOT_MEAL_TIME[slot]
 
     subset = meals_df[
@@ -682,16 +636,23 @@ def recommend_for_slot(condition, diet_pref, slot, target_cal, tolerance=50):
 
     within["score"] = within.apply(score, axis=1)
     top3 = within.nsmallest(3, "score")
-    cols = ["title", "diet", "calories_slot", "protein_slot",
-            "fat_slot", "carbs_slot", "sodium_slot_mg", "slot_portion_g"]
+    cols = [
+        "title", "diet", "calories_slot", "protein_slot", "fat_slot",
+        "carbs_slot", "sodium_slot_mg", "slot_portion_g"
+    ]
     return top3[cols].to_dict("records")
+
 
 def run_ml_prediction(condition, diet_pref):
     sample_meals = meals_df[meals_df["condition"] == condition]
     if sample_meals.empty:
         sample_meals = meals_df
-    rep = sample_meals[["calories_slot","protein_slot","fat_slot",
-                         "carbs_slot","sodium_slot_mg","slot_portion_g"]].median()
+
+    rep = sample_meals[[
+        "calories_slot", "protein_slot", "fat_slot",
+        "carbs_slot", "sodium_slot_mg", "slot_portion_g"
+    ]].median()
+
     try:
         d_enc = le_diet.transform([get_diet_options(diet_pref)[0]])[0]
         m_enc = le_meal.transform(["breakfast"])[0]
@@ -699,288 +660,245 @@ def run_ml_prediction(condition, diet_pref):
     except Exception:
         d_enc, m_enc, t_enc = 0, 0, 0
 
-    x_sample = np.array([[rep["calories_slot"], rep["protein_slot"], rep["fat_slot"],
-                           rep["carbs_slot"], rep["sodium_slot_mg"], rep["slot_portion_g"],
-                           d_enc, m_enc, t_enc]])
-    proba     = rf.predict_proba(scaler.transform(x_sample))[0]
-    pred      = le_target.classes_[np.argmax(proba)]
+    x_sample = np.array([[
+        rep["calories_slot"], rep["protein_slot"], rep["fat_slot"],
+        rep["carbs_slot"], rep["sodium_slot_mg"], rep["slot_portion_g"],
+        d_enc, m_enc, t_enc
+    ]])
+
+    proba = rf.predict_proba(scaler.transform(x_sample))[0]
+    pred = le_target.classes_[np.argmax(proba)]
     confidence = float(proba.max())
     return pred, confidence
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# SIDEBAR — Conversational input flow
-# ════════════════════════════════════════════════════════════════════════════
+def render_hero(name):
+    greeting = f"Hey {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
+    st.markdown(f"""
+    <div class='sd-hero'>
+        <div class='sd-eyebrow'>Personalized meal planning</div>
+        <div class='sd-hero-title'>{greeting}</div>
+        <p class='sd-hero-sub'>
+            Here are simple meal suggestions based on your age, height, weight, health condition, and food preference.
+            The goal is to help you choose meals more easily throughout the day.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_profile_card(age, gender, height, weight, bmi, fit_msg, fit_icon, condition_label, condition_icon, diet_label, daily_cal):
+    st.markdown(f"""
+    <div class='sd-card sd-profile'>
+        <div class='sd-card-title'>Your profile snapshot</div>
+        <div class='sd-pill-wrap'>
+            <span class='sd-pill'>{fit_icon} {age} years · {gender}</span>
+            <span class='sd-pill'>📏 {height:.0f} cm · {weight:.0f} kg</span>
+            <span class='sd-pill'>⚖️ BMI {bmi:.1f} · {fit_msg}</span>
+            <span class='sd-pill'>{condition_icon} {condition_label}</span>
+            <span class='sd-pill'>🥗 {diet_label}</span>
+        </div>
+        <div class='sd-goal'>
+            <div class='sd-goal-big'>{daily_cal} kcal</div>
+            <div class='sd-goal-sub'>Recommended daily calorie target based on your profile using the Mifflin–St Jeor formula.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_assessment_card(pred_label, pred_icon, pred_color, confidence_pct, assessment_message):
+    st.markdown(f"""
+    <div class='sd-card sd-assessment' style='background: linear-gradient(135deg, {pred_color} 0%, {pred_color}DD 100%);'>
+        <div>
+            <h3>{pred_icon} Health assessment</h3>
+            <div class='sd-assessment-main'>{pred_label}</div>
+            <div class='sd-assessment-text'>{assessment_message}</div>
+        </div>
+        <div>
+            <div class='sd-progress'><div style='width:{confidence_pct}%;'></div></div>
+            <div style='margin-top:0.55rem; font-size:0.88rem; font-weight:700;'>Confidence: {confidence_pct}%</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 with st.sidebar:
     st.markdown("""
-    <div style='padding: 1rem 0 0.5rem 0;'>
-        <span style='font-size:1.8rem;'>🍎</span>
-        <span style='font-family: Lora, serif; font-size:1.3rem; font-weight:600;
-                     color:#C8E6C9; margin-left:0.4rem;'>SmartDiet</span>
+    <div style='padding: 0.3rem 0 1rem 0;'>
+        <div style='display:flex; align-items:center; gap:0.7rem;'>
+            <div style='width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg,#1DB954,#6BE28E); display:flex; align-items:center; justify-content:center; font-size:1.35rem;'>🍎</div>
+            <div>
+                <div style='font-size:1.25rem; font-weight:800;'>SmartDiet</div>
+                <div style='font-size:0.84rem; color:#B9D9C7;'>Personal meal planner</div>
+            </div>
+        </div>
     </div>
-    <p style='color:#81C784; font-size:0.82rem; margin:0 0 1.2rem 0;'>
-        Your personal meal guide
-    </p>
     """, unsafe_allow_html=True)
 
-    st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.2rem;'>👋 Tell us about yourself</p>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin-bottom:0.5rem;'>PERSONAL PROFILE</div>", unsafe_allow_html=True)
+    name = st.text_input("Your name", placeholder="e.g. Priya")
 
-    name   = st.text_input("What's your name?", placeholder="e.g. Priya")
-    age    = st.slider("How old are you?", 10, 90, 35)
-    gender = st.radio("", ["Female", "Male"], horizontal=True, label_visibility="collapsed")
+    age_col, gender_col = st.columns(2)
+    with age_col:
+        age = st.slider("Age", 10, 90, 35)
+    with gender_col:
+        gender = st.selectbox("Gender", ["Female", "Male"])
 
-    st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin: 0.8rem 0 0.2rem 0;'>📏 Your measurements</p>", unsafe_allow_html=True)
+    height = st.slider("Height (cm)", 120, 220, 165)
+    weight = st.slider("Weight (kg)", 30, 180, 65)
 
-    height = st.number_input("Height (cm)", 100.0, 220.0, 165.0, step=0.5)
-    weight = st.number_input("Weight (kg)", 20.0, 200.0, 65.0, step=0.5)
-
-    bmi     = weight / ((height / 100) ** 2)
+    bmi = weight / ((height / 100) ** 2)
     bmi_cat = get_bmi_category(bmi)
-    fit_msg, fit_icon, fit_color, _ = FITNESS_DISPLAY[bmi_cat]
+    fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
 
     st.markdown(f"""
-    <div style='background:rgba(255,255,255,0.08); border-radius:12px;
-                padding:0.8rem 1rem; margin:0.5rem 0 1rem 0;'>
-        <span style='font-size:1.3rem;'>{fit_icon}</span>
-        <span style='color:#C8E6C9; font-weight:700; font-size:0.95rem;
-                     margin-left:0.4rem;'>{bmi:.1f}</span>
-        <p style='color:#A5D6A7; font-size:0.82rem; margin:0.2rem 0 0 0;'>{fit_msg}</p>
+    <div style='background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:0.9rem 1rem; margin:0.65rem 0 1rem 0;'>
+        <div style='display:flex; align-items:center; justify-content:space-between;'>
+            <div style='font-size:0.83rem; color:#B9D9C7;'>Current BMI</div>
+            <div style='font-size:0.83rem; color:#DDF7E6; font-weight:800;'>{bmi_cat}</div>
+        </div>
+        <div style='font-size:2rem; font-weight:800; margin-top:0.25rem;'>{bmi:.1f}</div>
+        <div style='font-size:0.9rem; color:#DDF7E6; margin-top:0.25rem;'>{fit_icon} {fit_msg}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.2rem;'>🏥 Your health situation</p>", unsafe_allow_html=True)
-
+    st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin-bottom:0.5rem;'>HEALTH GOAL</div>", unsafe_allow_html=True)
     condition_options = ["I'm Healthy", "Managing Diabetes", "Managing Blood Pressure", "Managing My Weight"]
     condition_sel = st.selectbox("Which best describes you?", condition_options)
-
     condition_map = {
-        "I'm Healthy":              "healthy",
-        "Managing Diabetes":        "diabetes",
-        "Managing Blood Pressure":  "hypertension",
-        "Managing My Weight":       "obesity",
+        "I'm Healthy": "healthy",
+        "Managing Diabetes": "diabetes",
+        "Managing Blood Pressure": "hypertension",
+        "Managing My Weight": "obesity",
     }
     condition = condition_map[condition_sel]
 
     diabetes_type = None
     if condition == "diabetes":
-        st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; margin-top:0.4rem;'>Which stage?</p>", unsafe_allow_html=True)
-        diabetes_type = st.radio("", ["Pre-Diabetic", "Type 1", "Type 2"],
-                                  horizontal=True, label_visibility="collapsed")
+        diabetes_type = st.selectbox("Diabetes type", ["Pre-Diabetic", "Type 1", "Type 2"])
 
-    st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin: 0.8rem 0 0.2rem 0;'>🥗 What do you eat?</p>", unsafe_allow_html=True)
-
-    diet_options = ["Only Vegetarian", "Non-Vegetarian", "Both are fine"]
-    diet_sel = st.radio("", diet_options, horizontal=False, label_visibility="collapsed")
-
+    st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin:0.95rem 0 0.5rem 0;'>FOOD PREFERENCE</div>", unsafe_allow_html=True)
+    diet_sel = st.radio("Diet preference", ["Only Vegetarian", "Non-Vegetarian", "Both are fine"])
     diet_map = {
         "Only Vegetarian": "Vegetarian",
-        "Non-Vegetarian":  "Non-Vegetarian",
-        "Both are fine":   "Balanced",
+        "Non-Vegetarian": "Non-Vegetarian",
+        "Both are fine": "Balanced",
     }
     diet_pref = diet_map[diet_sel]
 
-    st.markdown("<div style='height:0.8rem'></div>", unsafe_allow_html=True)
-    go = st.button("✨ Show My Meal Plan", use_container_width=True)
+    st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
+    go = st.button("✨ Generate Smart Plan", use_container_width=True)
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# MAIN PAGE
-# ════════════════════════════════════════════════════════════════════════════
+render_hero(name)
 
-# ── Hero banner ───────────────────────────────────────────────────────────────
-greeting = f"Hello, {name}!" if name else "Welcome to SmartDiet"
-st.markdown(f"""
-<div class='hero-banner' style='background:linear-gradient(135deg,#1A2F2A 0%,#2E7D32 60%,#388E3C 100%);
-     border-radius:20px; padding:2.5rem 3rem; color:white; margin-bottom:1.5rem;
-     position:relative; overflow:hidden;'>
-    <p style='font-family:Lora,serif; font-size:2.6rem; font-weight:600;
-              color:white !important; margin:0 0 0.4rem 0; line-height:1.2;
-              text-shadow: 0 1px 3px rgba(0,0,0,0.3);'>
-        {greeting}
-    </p>
-    <p style='font-size:1.05rem; color:rgba(255,255,255,0.92) !important;
-              margin:0; font-weight:400; line-height:1.6;
-              text-shadow: 0 1px 2px rgba(0,0,0,0.2);'>
-        Your personalised meal guide for a healthier, happier life —<br>
-        built around the foods you already love.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ── Welcome / landing state ───────────────────────────────────────────────────
 if not go:
-    st.markdown("### How it works")
-    steps = [
-        ("1️⃣ Tell us about yourself",
-         "Share your name, age, height, and weight using the panel on the left. It only takes a minute."),
-        ("2️⃣ Choose your health situation",
-         "Select what best describes you — whether you're healthy or managing a condition like diabetes or blood pressure."),
-        ("3️⃣ Get your personal meal plan",
-         "We'll suggest breakfast, lunch, snack, and dinner options from 214 authentic regional meals, matched to your daily calorie goal."),
-        ("4️⃣ Read your tips",
-         "We'll share simple, actionable food tips that are specific to your health situation — no medical jargon, just friendly advice."),
-    ]
-    for title, desc in steps:
-        st.markdown(f"""
-        <div class='welcome-step'>
-            <h3>{title}</h3>
-            <p>{desc}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
-    <div style='text-align:center; color:#888; font-size:0.88rem;'>
-        🍎 &nbsp; 214 regional meals &nbsp;|&nbsp;
-        ✅ &nbsp; Calorie-balanced plans &nbsp;|&nbsp;
-        🌿 &nbsp; All 4 health conditions covered
+    <div class='sd-grid-2'>
+        <div class='sd-card' style='padding:1.35rem;'>
+            <div class='sd-card-title'>What this app does</div>
+            <div style='display:flex; flex-direction:column; gap:0.8rem;'>
+                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
+                    SmartDiet builds a daily meal plan from your personal health profile and dietary preference.
+                </div>
+                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
+                    It estimates a calorie goal and recommends meals for breakfast, lunch, snack, and dinner.
+                </div>
+            </div>
+        </div>
+        <div class='sd-card' style='padding:1.35rem;'>
+            <div class='sd-card-title'>Why it is useful</div>
+            <div style='display:flex; flex-direction:column; gap:0.8rem;'>
+                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
+                    Nutrition numbers alone can feel confusing. SmartDiet converts them into meal choices people can understand.
+                </div>
+                <div style='padding:1rem; background:#F6FAF8; border:1px solid #E3EBE7; border-radius:18px; color:#31493F; line-height:1.7;'>
+                    It makes daily planning easier by showing suitable meals and a clear nutrition summary in one place.
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.stop()
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# RESULTS PAGE
-# ════════════════════════════════════════════════════════════════════════════
-
-# ── BMI correction ────────────────────────────────────────────────────────────
 if condition == "healthy" and bmi_cat == "Obese":
     st.markdown("""
-    <div style='background:#FFF3E0; border-left:5px solid #FF9800; border-radius:12px;
-                padding:1rem 1.4rem; margin-bottom:1rem;'>
-        <strong>⚠️ A small adjustment</strong><br>
-        Based on your height and weight, we've switched your plan to focus on
-        <strong>weight management</strong>. This will help you reach a healthier range gradually.
+    <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
+        <strong>Smart adjustment:</strong> based on your BMI, the plan has been nudged toward weight management for safer recommendations.
     </div>
     """, unsafe_allow_html=True)
     condition = "obesity"
 
-# ── Your Profile card ─────────────────────────────────────────────────────────
 cond_label, cond_icon, cond_color, cond_bg = CONDITION_DISPLAY[condition]
 fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
 daily_cal = calculate_daily_calories(weight, height, age, gender, condition)
 
-st.markdown(f"""
-<div style='background:linear-gradient(135deg,#1A2F2A,#2E7D32); border-radius:20px;
-            padding:1.8rem 2rem; color:white; margin-bottom:1.5rem;'>
-    <p style='font-family:Lora,serif; font-size:1.6rem; font-weight:600;
-              color:#C8E6C9 !important; margin:0 0 1rem 0;'>Your Profile</p>
-    <span style='display:inline-block; background:rgba(255,255,255,0.15);
-                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
-                 font-size:0.9rem; font-weight:600; color:white !important;'>{fit_icon} {age} years old · {gender}</span>
-    <span style='display:inline-block; background:rgba(255,255,255,0.15);
-                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
-                 font-size:0.9rem; font-weight:600; color:white !important;'>📏 {height:.0f} cm &nbsp; {weight:.0f} kg</span>
-    <span style='display:inline-block; background:rgba(255,255,255,0.15);
-                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
-                 font-size:0.9rem; font-weight:600; color:white !important;'>⚖️ BMI {bmi:.1f} — {fit_msg}</span>
-    <span style='display:inline-block; background:rgba(255,255,255,0.15);
-                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
-                 font-size:0.9rem; font-weight:600; color:white !important;'>{cond_icon} {cond_label}{" (" + diabetes_type + ")" if diabetes_type else ""}</span>
-    <span style='display:inline-block; background:rgba(255,255,255,0.15);
-                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
-                 font-size:0.9rem; font-weight:600; color:white !important;'>🥗 {diet_sel}</span>
-    <br><br>
-    <p style='color:rgba(255,255,255,0.85) !important; font-size:0.9rem; margin:0;'>
-        Your daily calorie goal: &nbsp;
-        <strong style='color:white !important; font-size:1.15rem;'>{daily_cal} kcal</strong>
-        &nbsp; — calculated for your body using the Mifflin-St Jeor formula
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ── Health Assessment ─────────────────────────────────────────────────────────
 pred_condition, confidence = run_ml_prediction(condition, diet_pref)
-pred_label, pred_icon, pred_color, pred_bg = CONDITION_DISPLAY.get(
-    pred_condition, CONDITION_DISPLAY["healthy"]
-)
-
+pred_label, pred_icon, pred_color, pred_bg = CONDITION_DISPLAY.get(pred_condition, CONDITION_DISPLAY["healthy"])
 confidence_pct = int(confidence * 100)
 
 ASSESSMENT_MESSAGES = {
-    "healthy":      "Great news! Your nutritional profile looks well-balanced. Keep up the good habits!",
-    "diabetes":     "Your meal plan is carefully designed to keep your blood sugar steady throughout the day.",
-    "hypertension": "Your meals are chosen to be low in salt and gentle on your blood pressure.",
-    "obesity":      "Your plan focuses on satisfying, lower-calorie meals to support your weight goals.",
+    "healthy": "Your nutritional profile looks balanced. Keep your daily routine consistent and hydrated.",
+    "diabetes": "Meals are prioritised to support steadier blood sugar and controlled carbohydrate load.",
+    "hypertension": "The plan prefers lower-sodium choices that are friendlier for blood pressure management.",
+    "obesity": "Meals are selected to stay satisfying while keeping daily energy intake more controlled.",
 }
 
-col_assess, col_space = st.columns([2, 1])
-with col_assess:
-    st.markdown(f"""
-    <div class='assessment-card' style='background: linear-gradient(135deg, {pred_color}CC, {pred_color});'>
-        <span class='assessment-icon'>{pred_icon}</span>
-        <p class='assessment-title'>Your Health Assessment</p>
-        <p class='assessment-msg'>{ASSESSMENT_MESSAGES.get(pred_condition, "")}</p>
-        <div class='confidence-bar-wrap'>
-            <div class='confidence-bar-fill' style='width:{confidence_pct}%'></div>
-        </div>
-        <p class='confidence-label'>Our assessment is <strong>{confidence_pct}% confident</strong> for your profile</p>
+st.markdown("<div class='sd-grid-2'>", unsafe_allow_html=True)
+left_col, right_col = st.columns([1.15, 0.85])
+with left_col:
+    render_profile_card(
+        age=age,
+        gender=gender,
+        height=height,
+        weight=weight,
+        bmi=bmi,
+        fit_msg=fit_msg,
+        fit_icon=fit_icon,
+        condition_label=cond_label + (f" · {diabetes_type}" if diabetes_type else ""),
+        condition_icon=cond_icon,
+        diet_label=diet_sel,
+        daily_cal=daily_cal,
+    )
+with right_col:
+    render_assessment_card(
+        pred_label=pred_label,
+        pred_icon=pred_icon,
+        pred_color=pred_color,
+        confidence_pct=confidence_pct,
+        assessment_message=ASSESSMENT_MESSAGES.get(pred_condition, ""),
+    )
+
+st.markdown("""
+<div class='sd-section-head'>
+    <div>
+        <div class='sd-section-title'>Meal planner</div>
+        <div class='sd-section-sub'>Four structured meal windows matched to your calorie target and health profile.</div>
     </div>
-    """, unsafe_allow_html=True)
-
-with col_space:
-    st.markdown(f"""
-    <div style='background:{cond_bg}; border-radius:16px; padding:1.4rem;
-                height:100%; display:flex; flex-direction:column; justify-content:center;
-                border: 2px solid {cond_color}33;'>
-        <p style='color:{cond_color}; font-weight:800; font-size:1.1rem; margin:0 0 0.5rem 0;'>
-            {cond_icon} {cond_label}
-        </p>
-        <p style='color:#555; font-size:0.9rem; margin:0; line-height:1.6;'>
-            Daily goal: <strong>{daily_cal} kcal</strong><br>
-            Fitness level: <strong>{bmi_cat}</strong><br>
-            Diet: <strong>{diet_sel}</strong>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# MEAL PLAN
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown(f"""
-<div style='background:white; border-radius:20px; padding:1.4rem 2rem;
-            box-shadow:0 2px 10px rgba(0,0,0,0.05); border:2px solid #E8F5E9;
-            margin-bottom:1.2rem;'>
-    <h2 style='font-family: Lora, serif; color:#1A2F2A; margin:0 0 0.4rem 0;
-               font-size:1.5rem;'>🍽️ Your Personal Meal Plan</h2>
-    <p style='color:#666; margin:0; font-size:0.95rem;'>
-        Each meal below is chosen to fit within your daily goal of <strong>{daily_cal} kcal</strong>.
-        We allow ±50 kcal flexibility per meal so you have real options to choose from.
-    </p>
+    <div class='sd-badge'>Target: personalised and flexible</div>
 </div>
 """, unsafe_allow_html=True)
 
-tabs = st.tabs(["🌅 Breakfast", "☀️ Lunch", "🍵 Snack", "🌙 Dinner"])
 best_per_slot = {}
 slots = ["breakfast", "lunch", "snack", "dinner"]
+tabs = st.tabs(["🌅 Breakfast", "☀️ Lunch", "🍵 Snack", "🌙 Dinner"])
 
 for tab, slot in zip(tabs, slots):
     target_cal = int(daily_cal * SLOT_CALORIE_SPLIT[slot])
     recs = recommend_for_slot(condition, diet_pref, slot, target_cal)
-    slot_icon, slot_label = SLOT_FRIENDLY[slot]
 
     with tab:
         st.markdown(f"""
-        <div style='background:#E8F5E9; border-radius:12px; padding:0.9rem 1.2rem;
-                    margin-bottom:1rem; border:1.5px solid #A5D6A7;'>
-            <span style='color:#1B5E20 !important; font-weight:800; font-size:1rem;'>Aim for around {target_cal} kcal</span>
-            <span style='color:#388E3C !important; font-size:0.88rem;'>
-                &nbsp; (anything between {target_cal - 50} and {target_cal + 50} kcal is perfect)
-            </span>
+        <div class='sd-meal-banner'>
+            <strong style='color:#17442F;'>Target for this meal:</strong>
+            <span style='color:#3A5A4D;'> around <strong>{target_cal} kcal</strong> with a natural flexibility of ±50 kcal</span>
         </div>
         """, unsafe_allow_html=True)
 
         if not recs:
             st.markdown("""
-            <div style='background:#FFF3E0; border-radius:12px; padding:1rem 1.4rem;'>
-                ⚠️ We couldn't find matching meals for this slot with your preferences.
-                Try switching to "Both are fine" for more options.
+            <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
+                No close meal match was found for this slot with the current diet preference.
             </div>
             """, unsafe_allow_html=True)
             continue
@@ -989,200 +907,151 @@ for tab, slot in zip(tabs, slots):
 
         for i, meal in enumerate(recs):
             diff = meal["calories_slot"] - target_cal
-            diff_label = f"+{diff:.0f} kcal" if diff > 5 else (f"{diff:.0f} kcal" if diff < -5 else "right on target ✓")
-            diet_tag = "🥗 Vegetarian" if meal["diet"] == "vegetarian" else "🍗 Non-Vegetarian"
-
-            with st.expander(
-                f"{'⭐ ' if i == 0 else '  '}{meal['title']}   —   {meal['calories_slot']:.0f} kcal   •   {diet_tag}",
-                expanded=(i == 0)
-            ):
+            diff_label = f"+{diff:.0f} kcal" if diff > 5 else (f"{diff:.0f} kcal" if diff < -5 else "on target")
+            diet_tag = "Veg" if meal["diet"] == "vegetarian" else "Non-veg"
+            with st.expander(f"{'⭐ ' if i == 0 else ''}{meal['title']} · {meal['calories_slot']:.0f} kcal · {diet_tag}", expanded=(i == 0)):
                 if i == 0:
-                    st.markdown("<span class='best-pick-banner'>✅ Best match for you</span>", unsafe_allow_html=True)
-
+                    st.markdown("<div style='display:inline-block; margin-bottom:0.75rem; background:#14221B; color:#FFFFFF; padding:0.38rem 0.8rem; border-radius:999px; font-size:0.78rem; font-weight:800;'>Best fit for this slot</div>", unsafe_allow_html=True)
                 c1, c2 = st.columns([1, 1])
-
                 with c1:
-                    st.markdown("<p style='font-weight:700; color:#1A2F2A; margin-bottom:0.4rem;'>What's in this meal:</p>", unsafe_allow_html=True)
                     st.markdown(f"""
-                    <div style='margin-top:0.2rem;'>
-                        <span class='nutrient-pill'>🔥 {meal['calories_slot']:.0f} kcal energy</span>
-                        <span class='nutrient-pill'>💪 {meal['protein_slot']:.1f}g protein</span>
-                        <span class='nutrient-pill'>🌾 {meal['carbs_slot']:.1f}g carbs</span>
-                        <span class='nutrient-pill'>🧈 {meal['fat_slot']:.1f}g fat</span>
-                        <span class='nutrient-pill'>🧂 {meal['sodium_slot_mg']:.0f}mg salt</span>
+                    <div style='padding:0.3rem 0.2rem 0.1rem 0.2rem;'>
+                        <div style='font-size:0.95rem; font-weight:800; color:#22392F; margin-bottom:0.55rem;'>Nutrition snapshot</div>
+                        <div style='display:flex; flex-wrap:wrap; gap:0.45rem;'>
+                            <span class='sd-pill'>🔥 {meal['calories_slot']:.0f} kcal</span>
+                            <span class='sd-pill'>💪 {meal['protein_slot']:.1f}g protein</span>
+                            <span class='sd-pill'>🌾 {meal['carbs_slot']:.1f}g carbs</span>
+                            <span class='sd-pill'>🧈 {meal['fat_slot']:.1f}g fat</span>
+                            <span class='sd-pill'>🧂 {meal['sodium_slot_mg']:.0f} mg sodium</span>
+                            <span class='sd-pill'>🥄 {meal['slot_portion_g']:.0f} g portion</span>
+                        </div>
+                        <div style='margin-top:0.7rem; color:#66756E; font-size:0.9rem;'>Meal vs target: <strong style='color:#22392F;'>{diff_label}</strong></div>
                     </div>
-                    <p style='color:#555 !important; font-size:0.82rem; margin-top:0.6rem;'>
-                        Portion size: <strong style='color:#1A2F2A;'>{meal['slot_portion_g']}g</strong>
-                        &nbsp;|&nbsp; {diff_label}
-                    </p>
                     """, unsafe_allow_html=True)
 
                 with c2:
-                    st.markdown("<p style='font-weight:700; color:#1A2F2A; margin-bottom:0.4rem;'>How this meal compares to your goal:</p>", unsafe_allow_html=True)
-                    fig, ax = plt.subplots(figsize=(4, 2.6))
-                    fig.patch.set_facecolor("#FDFAF6")
-                    ax.set_facecolor("#FDFAF6")
-
-                    bar_labels  = ["Energy\n(kcal)", "Carbs\n(g)", "Fat\n(g)"]
-                    meal_vals   = [meal["calories_slot"], meal["carbs_slot"], meal["fat_slot"]]
-                    limit_vals  = [target_cal, SLOT_CARB_LIMITS[condition], SLOT_FAT_LIMITS[condition]]
+                    fig, ax = plt.subplots(figsize=(4.1, 2.65))
+                    fig.patch.set_facecolor("#FFFFFF")
+                    ax.set_facecolor("#FFFFFF")
+                    bar_labels = ["Energy", "Carbs", "Fat"]
+                    meal_vals = [meal["calories_slot"], meal["carbs_slot"], meal["fat_slot"]]
+                    limit_vals = [target_cal, SLOT_CARB_LIMITS[condition], SLOT_FAT_LIMITS[condition]]
                     xp = np.arange(3)
 
-                    ax.bar(xp - 0.2, meal_vals,  0.35, label="This meal",   color="#4CAF50", alpha=0.85)
-                    ax.bar(xp + 0.2, limit_vals, 0.35, label="Your target", color="#BDBDBD", alpha=0.7)
+                    ax.bar(xp - 0.2, meal_vals, 0.35, label="Meal", color="#1DB954", alpha=0.9)
+                    ax.bar(xp + 0.2, limit_vals, 0.35, label="Target", color="#C8D3CD", alpha=0.95)
                     ax.set_xticks(xp)
-                    ax.set_xticklabels(bar_labels, fontsize=8, color="#555")
-                    ax.tick_params(colors="#555")
+                    ax.set_xticklabels(bar_labels, fontsize=8.5, color="#4D6258")
+                    ax.tick_params(axis='y', labelsize=8, colors="#6A7A73")
                     ax.spines["top"].set_visible(False)
                     ax.spines["right"].set_visible(False)
-                    ax.spines["left"].set_color("#DDD")
-                    ax.spines["bottom"].set_color("#DDD")
-                    ax.legend(fontsize=7, framealpha=0)
-                    plt.tight_layout(pad=0.5)
+                    ax.spines["left"].set_color("#DFE8E2")
+                    ax.spines["bottom"].set_color("#DFE8E2")
+                    ax.legend(frameon=False, fontsize=8)
+                    plt.tight_layout(pad=0.6)
                     st.pyplot(fig)
                     plt.close()
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# DAILY SUMMARY
-# ════════════════════════════════════════════════════════════════════════════
 if best_per_slot:
-    total_cal  = sum(m["calories_slot"]  for m in best_per_slot.values())
-    total_prot = sum(m["protein_slot"]   for m in best_per_slot.values())
-    total_fat  = sum(m["fat_slot"]       for m in best_per_slot.values())
-    total_carb = sum(m["carbs_slot"]     for m in best_per_slot.values())
-    total_sod  = sum(m["sodium_slot_mg"] for m in best_per_slot.values())
-    diff       = total_cal - daily_cal
+    total_cal = sum(m["calories_slot"] for m in best_per_slot.values())
+    total_prot = sum(m["protein_slot"] for m in best_per_slot.values())
+    total_fat = sum(m["fat_slot"] for m in best_per_slot.values())
+    total_carb = sum(m["carbs_slot"] for m in best_per_slot.values())
+    total_sod = sum(m["sodium_slot_mg"] for m in best_per_slot.values())
+    diff = total_cal - daily_cal
 
-    st.markdown(f"""
-    <div style='background:linear-gradient(135deg,#1A2F2A,#2E7D32);
-                border-radius:20px; padding:1.6rem 2rem; margin-top:1.5rem;'>
-        <p style='font-family:Lora,serif; color:#C8E6C9 !important;
-                  margin:0; font-size:1.5rem; font-weight:600;
-                  text-shadow:0 1px 3px rgba(0,0,0,0.3);'>
-            📊 Today's Nutrition at a Glance
-        </p>
+    st.markdown("""
+    <div class='sd-section-head'>
+        <div>
+            <div class='sd-section-title'>Today’s nutrition at a glance</div>
+            <div class='sd-section-sub'>A simple summary of your daily calories and macronutrients.</div>
+        </div>
+        <div class='sd-badge'>Daily macro overview</div>
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    summary_items = [
-        (c1, f"{total_cal:.0f}", "Total calories today", "🔥"),
-        (c2, f"{total_prot:.0f}g", "Protein (builds muscle)", "💪"),
-        (c3, f"{total_fat:.0f}g", "Fat (healthy fats)", "🧈"),
-        (c4, f"{total_carb:.0f}g", "Carbohydrates (energy)", "🌾"),
-        (c5, f"{total_sod:.0f}mg", "Salt (keep it low)", "🧂"),
-    ]
-
-    for col, val, lbl, icon in summary_items:
-        col.markdown(f"""
-        <div style='background:#FFFFFF; border-radius:14px; padding:1rem 0.6rem;
-                    text-align:center; border:2px solid #A5D6A7;
-                    box-shadow:0 3px 10px rgba(46,125,50,0.12); margin-top:0.6rem;'>
-            <p style='font-size:1.6rem; line-height:1; margin:0; padding:0;
-                      color:#1A2F2A !important;'>{icon}</p>
-            <p style='font-size:1.4rem; font-weight:800; margin:0.3rem 0 0.1rem 0;
-                      padding:0; color:#1A2F2A !important; line-height:1.2;'>{val}</p>
-            <p style='font-size:0.72rem; color:#2E7D32 !important; margin:0; padding:0;
-                      line-height:1.4; font-weight:700;'>{lbl}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class='sd-metric-grid'>
+        <div class='sd-stat'><div class='sd-stat-icon'>🔥</div><div class='sd-stat-value'>{total_cal:.0f}</div><div class='sd-stat-label'>Total calories</div></div>
+        <div class='sd-stat'><div class='sd-stat-icon'>💪</div><div class='sd-stat-value'>{total_prot:.0f}g</div><div class='sd-stat-label'>Protein</div></div>
+        <div class='sd-stat'><div class='sd-stat-icon'>🧈</div><div class='sd-stat-value'>{total_fat:.0f}g</div><div class='sd-stat-label'>Fat</div></div>
+        <div class='sd-stat'><div class='sd-stat-icon'>🌾</div><div class='sd-stat-value'>{total_carb:.0f}g</div><div class='sd-stat-label'>Carbohydrates</div></div>
+        <div class='sd-stat'><div class='sd-stat-icon'>🧂</div><div class='sd-stat-value'>{total_sod:.0f}mg</div><div class='sd-stat-label'>Sodium</div></div>
+    </div>
+    """, unsafe_allow_html=True)
 
     if abs(diff) <= 100:
         st.markdown(f"""
-        <div style='background:#E8F5E9; border-left:5px solid #4CAF50; border-radius:12px;
-                    padding:1rem 1.4rem; color:#1B5E20 !important;'>
-            <strong style='color:#1B5E20;'>✅ You're on track!</strong>
-            <span style='color:#2E7D32;'> Your total today is
-            <strong style='color:#1A2F2A;'>{total_cal:.0f} kcal</strong>,
-            which is very close to your goal of {daily_cal} kcal. Well done!</span>
+        <div class='sd-alert' style='background:#ECF8F0; border-left-color:#1DB954; color:#1F5B34;'>
+            <strong>You’re on track.</strong> Your plan totals <strong>{total_cal:.0f} kcal</strong>, which is close to your target of <strong>{daily_cal} kcal</strong>.
         </div>
         """, unsafe_allow_html=True)
     else:
-        direction = "a bit over" if diff > 0 else "a bit under"
+        direction = "above" if diff > 0 else "below"
         st.markdown(f"""
-        <div style='background:#FFF3E0; border-left:5px solid #FF9800; border-radius:12px;
-                    padding:1rem 1.4rem; color:#E65100 !important;'>
-            <strong style='color:#E65100;'>⚠️ Heads up!</strong>
-            <span style='color:#BF360C;'> Your total today is
-            <strong style='color:#1A2F2A;'>{total_cal:.0f} kcal</strong> — {direction} your goal of {daily_cal} kcal
-            by {abs(diff):.0f} kcal. Try swapping one meal for a lighter option.</span>
+        <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
+            <strong>Adjustment suggested.</strong> Your plan is <strong>{abs(diff):.0f} kcal {direction}</strong> your current target of <strong>{daily_cal} kcal</strong>.
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Nutrition balance chart
-    col_pie, col_bar = st.columns(2)
-
-    with col_pie:
-        st.markdown("**Nutrition Balance**")
-        st.caption("How your energy is split between the three main nutrients")
-        fig, ax = plt.subplots(figsize=(4, 3.5))
-        fig.patch.set_facecolor("#FDFAF6")
-        macro_vals   = [total_prot * 4, total_fat * 9, total_carb * 4]
+    chart_col_1, chart_col_2 = st.columns(2)
+    with chart_col_1:
+        st.markdown("<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Nutrition balance</div></div>", unsafe_allow_html=True)
+        fig, ax = plt.subplots(figsize=(4.3, 3.6))
+        fig.patch.set_facecolor("#FFFFFF")
+        macro_vals = [total_prot * 4, total_fat * 9, total_carb * 4]
         macro_labels = [f"Protein\n{total_prot:.0f}g", f"Fat\n{total_fat:.0f}g", f"Carbs\n{total_carb:.0f}g"]
         wedges, texts, autotexts = ax.pie(
-            macro_vals, labels=macro_labels, autopct="%1.0f%%", startangle=90,
-            colors=["#4CAF50", "#FF9800", "#42A5F5"],
+            macro_vals,
+            labels=macro_labels,
+            autopct="%1.0f%%",
+            startangle=90,
+            colors=["#1DB954", "#FF9F1C", "#2D7DF6"],
             wedgeprops=dict(edgecolor="white", linewidth=2)
         )
         for t in autotexts:
             t.set_fontsize(9)
             t.set_color("white")
             t.set_fontweight("bold")
-        plt.tight_layout(pad=0.5)
+        plt.tight_layout(pad=0.65)
         st.pyplot(fig)
         plt.close()
 
-    with col_bar:
-        st.markdown("**How your meals compare to your goal**")
-        st.caption("Green = what we recommend, Grey = your daily target")
-        fig, ax = plt.subplots(figsize=(4, 3.5))
-        fig.patch.set_facecolor("#FDFAF6")
-        ax.set_facecolor("#FDFAF6")
-
+    with chart_col_2:
+        st.markdown("<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Meal vs target comparison</div></div>", unsafe_allow_html=True)
+        fig, ax = plt.subplots(figsize=(4.3, 3.6))
+        fig.patch.set_facecolor("#FFFFFF")
+        ax.set_facecolor("#FFFFFF")
         snames = list(best_per_slot.keys())
-        scals  = [best_per_slot[s]["calories_slot"] for s in snames]
+        scals = [best_per_slot[s]["calories_slot"] for s in snames]
         stargs = [int(daily_cal * SLOT_CALORIE_SPLIT[s]) for s in snames]
-        xp     = np.arange(len(snames))
+        xp = np.arange(len(snames))
         friendly_names = ["Breakfast", "Lunch", "Snack", "Dinner"][:len(snames)]
 
-        ax.bar(xp - 0.2, scals,  0.35, label="Recommended", color="#4CAF50", alpha=0.85)
-        ax.bar(xp + 0.2, stargs, 0.35, label="Your target",  color="#BDBDBD", alpha=0.7)
+        ax.bar(xp - 0.2, scals, 0.35, label="Meal", color="#1DB954", alpha=0.9)
+        ax.bar(xp + 0.2, stargs, 0.35, label="Target", color="#C8D3CD", alpha=0.95)
         ax.set_xticks(xp)
-        ax.set_xticklabels(friendly_names, fontsize=9, color="#555")
-        ax.set_ylabel("Calories (kcal)", fontsize=8, color="#777")
+        ax.set_xticklabels(friendly_names, fontsize=9, color="#4D6258")
+        ax.set_ylabel("Calories", fontsize=8.5, color="#6A7A73")
+        ax.tick_params(axis='y', labelsize=8, colors="#6A7A73")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-        ax.spines["left"].set_color("#DDD")
-        ax.spines["bottom"].set_color("#DDD")
-        ax.legend(fontsize=8, framealpha=0)
-        plt.tight_layout(pad=0.5)
+        ax.spines["left"].set_color("#DFE8E2")
+        ax.spines["bottom"].set_color("#DFE8E2")
+        ax.legend(frameon=False, fontsize=8)
+        plt.tight_layout(pad=0.65)
         st.pyplot(fig)
         plt.close()
 
+st.markdown("<div class='sd-section-head'><div><div class='sd-section-title'>Diet tips</div><div class='sd-section-sub'>Simple guidance based on the selected health condition.</div></div><div class='sd-badge'>Actionable suggestions</div></div>", unsafe_allow_html=True)
 
-# ════════════════════════════════════════════════════════════════════════════
-# DIETARY TIPS
-# ════════════════════════════════════════════════════════════════════════════
-st.markdown("<br>", unsafe_allow_html=True)
-tips = CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"])
-
-st.markdown(f"""
-<div class='guideline-card'>
-    <h3>💡 Simple tips for {cond_label}</h3>
-    {"".join(f"<div class='guideline-tip'><span style='font-size:1.2rem;'>{icon}</span><span>{tip}</span></div>" for icon, tip in tips)}
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='sd-card sd-tips'>", unsafe_allow_html=True)
+for icon, tip in CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"]):
+    st.markdown(f"<div class='sd-tip'><div style='font-size:1.25rem;'>{icon}</div><div>{tip}</div></div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("""
-<div class='disclaimer'>
-    🩺 SmartDiet is a meal guidance tool, not a medical prescription.<br>
-    Always talk to your doctor or a registered dietitian before making big changes to your diet.
+<div class='sd-footer-note'>
+    SmartDiet is a decision-support interface for meal guidance and should not replace clinical advice from a qualified doctor or dietitian.
 </div>
 """, unsafe_allow_html=True)
