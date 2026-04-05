@@ -10,15 +10,12 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
 st.set_page_config(
-    page_title="SmartDiet — Personal Nutrition Planner",
+    page_title="SmartDiet — Personal Meal Planner",
     page_icon="🍎",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# =========================
-# THEME + DESIGN SYSTEM
-# =========================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
@@ -26,22 +23,15 @@ st.markdown("""
 :root {
     --bg: #F6F8F7;
     --surface: #FFFFFF;
-    --surface-2: #F1F5F3;
-    --text: #14221B;
-    --muted: #66756E;
+    --surface-2: #F4F8F6;
+    --text: #15221B;
+    --muted: #67766F;
     --line: #E3EBE7;
     --primary: #1DB954;
     --primary-dark: #159447;
-    --primary-soft: #E8F7EE;
-    --accent: #FF6B35;
-    --danger-soft: #FFF2EE;
-    --warning-soft: #FFF8E8;
-    --shadow: 0 10px 30px rgba(20, 34, 27, 0.08);
+    --primary-soft: #EAF8EF;
     --shadow-soft: 0 4px 14px rgba(20, 34, 27, 0.05);
-    --radius-xl: 24px;
-    --radius-lg: 18px;
-    --radius-md: 14px;
-    --radius-sm: 10px;
+    --shadow: 0 10px 28px rgba(20, 34, 27, 0.08);
 }
 
 html, body, [class*="css"] {
@@ -55,11 +45,10 @@ html, body, [class*="css"] {
 
 div.block-container {
     max-width: 1220px;
-    padding-top: 1.25rem;
+    padding-top: 1.15rem;
     padding-bottom: 3rem;
 }
 
-/* Hide default top decorations */
 header[data-testid="stHeader"] {
     background: transparent;
 }
@@ -70,7 +59,6 @@ header[data-testid="stHeader"] {
     position: fixed;
 }
 
-/* Sidebar */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0F1E18 0%, #153126 100%) !important;
     border-right: 1px solid rgba(255,255,255,0.06);
@@ -82,13 +70,12 @@ section[data-testid="stSidebar"] * {
 }
 
 section[data-testid="stSidebar"] .block-container {
-    padding-top: 1.25rem;
+    padding-top: 1.1rem;
     padding-bottom: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
 }
 
-/* Inputs */
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] .stSelectbox label,
 section[data-testid="stSidebar"] .stSlider label,
@@ -117,10 +104,6 @@ section[data-testid="stSidebar"] input {
     color: #FFFFFF !important;
 }
 
-section[data-testid="stSidebar"] [data-baseweb="radio"] > div {
-    gap: 0.55rem;
-}
-
 section[data-testid="stSidebar"] .stButton button {
     width: 100%;
     height: 52px;
@@ -135,10 +118,8 @@ section[data-testid="stSidebar"] .stButton button {
 
 section[data-testid="stSidebar"] .stButton button:hover {
     background: linear-gradient(90deg, var(--primary-dark) 0%, #2FB85A 100%) !important;
-    transform: translateY(-1px);
 }
 
-/* Main tabs */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     gap: 0.6rem;
@@ -152,7 +133,6 @@ section[data-testid="stSidebar"] .stButton button:hover {
     border-radius: 999px !important;
     color: #355044 !important;
     font-weight: 700;
-    border: 1px solid transparent;
 }
 
 .stTabs [aria-selected="true"] {
@@ -160,7 +140,6 @@ section[data-testid="stSidebar"] .stButton button:hover {
     color: #FFFFFF !important;
 }
 
-/* Expanders */
 [data-testid="stExpander"] {
     border: none !important;
     background: transparent !important;
@@ -182,18 +161,17 @@ section[data-testid="stSidebar"] .stButton button:hover {
     padding: 0.4rem 0.35rem 0.8rem 0.35rem;
 }
 
-/* Generic cards */
 .sd-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: var(--radius-xl);
+    border-radius: 24px;
     box-shadow: var(--shadow-soft);
 }
 
 .sd-hero {
     position: relative;
     overflow: hidden;
-    padding: 2rem 2rem 1.8rem 2rem;
+    padding: 1.6rem 1.8rem;
     background: linear-gradient(135deg, #14221B 0%, #1B3D2E 52%, #1DB954 100%);
     border-radius: 28px;
     color: white;
@@ -206,8 +184,8 @@ section[data-testid="stSidebar"] .stButton button:hover {
     right: 2rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 6rem;
-    opacity: 0.15;
+    font-size: 5rem;
+    opacity: 0.12;
 }
 
 .sd-eyebrow {
@@ -218,19 +196,19 @@ section[data-testid="stSidebar"] .stButton button:hover {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.8rem;
 }
 
 .sd-hero-title {
     font-family: 'DM Serif Display', serif;
-    font-size: 2.35rem;
+    font-size: 2.25rem;
     line-height: 1.12;
-    margin: 0 0 0.55rem 0;
+    margin: 0 0 0.45rem 0;
 }
 
 .sd-hero-sub {
-    max-width: 650px;
-    font-size: 1.05rem;
+    max-width: 760px;
+    font-size: 1rem;
     line-height: 1.7;
     color: rgba(255,255,255,0.88);
     margin: 0;
@@ -238,21 +216,31 @@ section[data-testid="stSidebar"] .stButton button:hover {
 
 .sd-grid-2 {
     display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-top: 1rem;
 }
 
-.sd-profile {
-    padding: 1.25rem;
-    background: linear-gradient(180deg, #FFFFFF 0%, #F9FCFA 100%);
-}
-
 .sd-card-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: var(--text);
-    margin: 0 0 1rem 0;
+    margin: 0 0 0.9rem 0;
+}
+
+.sd-mini-box {
+    padding: 0.9rem 1rem;
+    background: #F6FAF8;
+    border: 1px solid #E3EBE7;
+    border-radius: 18px;
+    color: #31493F;
+    line-height: 1.65;
+    font-size: 0.96rem;
+}
+
+.sd-profile {
+    padding: 1.2rem;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F9FCFA 100%);
 }
 
 .sd-pill-wrap {
@@ -278,7 +266,7 @@ section[data-testid="stSidebar"] .stButton button:hover {
     background: linear-gradient(180deg, #F3FBF5 0%, #ECF8F0 100%);
     border: 1px solid #DCEFE3;
     border-radius: 18px;
-    padding: 1rem 1rem;
+    padding: 1rem;
 }
 
 .sd-goal-big {
@@ -296,7 +284,7 @@ section[data-testid="stSidebar"] .stButton button:hover {
 }
 
 .sd-assessment {
-    padding: 1.25rem;
+    padding: 1.2rem;
     color: white;
     display: flex;
     flex-direction: column;
@@ -305,21 +293,21 @@ section[data-testid="stSidebar"] .stButton button:hover {
 
 .sd-assessment h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 800;
 }
 
 .sd-assessment-main {
-    margin-top: 0.75rem;
-    font-size: 2rem;
+    margin-top: 0.7rem;
+    font-size: 1.85rem;
     font-weight: 800;
     line-height: 1.1;
 }
 
 .sd-assessment-text {
-    margin-top: 0.6rem;
+    margin-top: 0.55rem;
     font-size: 0.95rem;
-    line-height: 1.65;
+    line-height: 1.6;
     opacity: 0.96;
 }
 
@@ -343,12 +331,12 @@ section[data-testid="stSidebar"] .stButton button:hover {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 1.15rem;
+    margin-top: 1.1rem;
     margin-bottom: 0.9rem;
 }
 
 .sd-section-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: var(--text);
     margin: 0;
@@ -467,11 +455,11 @@ section[data-testid="stSidebar"] .stButton button:hover {
     }
 
     .sd-hero {
-        padding: 1.35rem;
+        padding: 1.3rem;
     }
 
     .sd-hero-title {
-        font-size: 2.1rem;
+        font-size: 2rem;
     }
 
     .sd-metric-grid {
@@ -481,22 +469,18 @@ section[data-testid="stSidebar"] .stButton button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-
-# =========================
-# BACKEND
-# =========================
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
 
 @st.cache_resource
 def load_all():
-    rf        = joblib.load(f"{MODEL_DIR}/rf_model.pkl")
-    gb        = joblib.load(f"{MODEL_DIR}/gb_model.pkl")
-    scaler    = joblib.load(f"{MODEL_DIR}/scaler.pkl")
+    rf = joblib.load(f"{MODEL_DIR}/rf_model.pkl")
+    gb = joblib.load(f"{MODEL_DIR}/gb_model.pkl")
+    scaler = joblib.load(f"{MODEL_DIR}/scaler.pkl")
     le_target = joblib.load(f"{MODEL_DIR}/le_target.pkl")
-    le_diet   = joblib.load(f"{MODEL_DIR}/le_diet.pkl")
-    le_meal   = joblib.load(f"{MODEL_DIR}/le_meal.pkl")
-    le_dish   = joblib.load(f"{MODEL_DIR}/le_dish.pkl")
-    df        = pd.read_csv(f"{MODEL_DIR}/meals_extended_labelled.csv")
+    le_diet = joblib.load(f"{MODEL_DIR}/le_diet.pkl")
+    le_meal = joblib.load(f"{MODEL_DIR}/le_meal.pkl")
+    le_dish = joblib.load(f"{MODEL_DIR}/le_dish.pkl")
+    df = pd.read_csv(f"{MODEL_DIR}/meals_extended_labelled.csv")
     with open(f"{MODEL_DIR}/meta.json") as f:
         meta = json.load(f)
     return rf, gb, scaler, le_target, le_diet, le_meal, le_dish, df, meta
@@ -560,11 +544,11 @@ CONDITION_TIPS = {
     "diabetes": [
         ("🌾", "Choose slower-digesting carbs like ragi, oats, and brown rice more often than polished rice."),
         ("⏰", "Keep meal timing regular. Smaller, balanced meals help avoid sharp glucose spikes."),
-        ("🚫", "Limit sweets, packaged snacks, and fruit juices — they raise blood sugar quickly."),
+        ("🚫", "Limit sweets, packaged snacks, and fruit juices because they can raise blood sugar quickly."),
         ("💧", "Stay hydrated with water, buttermilk, and other unsweetened drinks."),
     ],
     "hypertension": [
-        ("🧂", "Reduce pickles, papad, chips, and processed foods — most hidden sodium comes from these."),
+        ("🧂", "Reduce pickles, papad, chips, and processed foods because most hidden sodium comes from these."),
         ("🍌", "Add potassium-rich foods like banana, curd, greens, and coconut water when suitable."),
         ("🚶", "A short daily walk can support healthier blood pressure over time."),
         ("☕", "Moderate caffeine if you notice it affects your blood pressure."),
@@ -578,7 +562,7 @@ CONDITION_TIPS = {
     "healthy": [
         ("🥗", "Build meals around vegetables, dal, curd, fruit, and consistent hydration."),
         ("🥛", "Add a fermented dairy option like curd or buttermilk when it suits you."),
-        ("🌿", "Choose seasonal produce often — it is usually fresher, cheaper, and nutrient-dense."),
+        ("🌿", "Choose seasonal produce often because it is usually fresher, cheaper, and nutrient-dense."),
         ("💧", "Good hydration improves energy, digestion, and appetite control."),
     ],
 }
@@ -673,7 +657,7 @@ def run_ml_prediction(condition, diet_pref):
 
 
 def render_hero(name):
-    greeting = f"Hi {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
+    greeting = f"Hey {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
     st.markdown(f"""
     <div class='sd-hero'>
         <div class='sd-eyebrow'>Personalized meal planning</div>
@@ -689,7 +673,7 @@ def render_hero(name):
 def render_profile_card(age, gender, height, weight, bmi, fit_msg, fit_icon, condition_label, condition_icon, diet_label, daily_cal):
     st.markdown(f"""
     <div class='sd-card sd-profile'>
-        <div class='sd-card-title'>Your profile snapshot</div>
+        <div class='sd-card-title'>Your profile</div>
         <div class='sd-pill-wrap'>
             <span class='sd-pill'>{fit_icon} {age} years · {gender}</span>
             <span class='sd-pill'>📏 {height:.0f} cm · {weight:.0f} kg</span>
@@ -699,7 +683,7 @@ def render_profile_card(age, gender, height, weight, bmi, fit_msg, fit_icon, con
         </div>
         <div class='sd-goal'>
             <div class='sd-goal-big'>{daily_cal} kcal</div>
-            <div class='sd-goal-sub'>Recommended daily calorie target based on your profile using the Mifflin–St Jeor formula.</div>
+            <div class='sd-goal-sub'>Estimated daily calorie goal based on your profile and selected condition.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -792,18 +776,38 @@ with st.sidebar:
     if st.button("✨ Generate Smart Plan", use_container_width=True):
         st.session_state.show_plan = True
 
-
 render_hero(name)
 
 if not st.session_state.show_plan:
-    st.info("Enter your details in the left panel and click 'Generate Smart Plan' to see your personalized meals.")
+    st.markdown("""
+    <div class='sd-grid-2' style='margin-top:0.9rem;'>
+        <div class='sd-card' style='padding:1rem;'>
+            <div class='sd-card-title' style='margin-bottom:0.75rem;'>Why we built SmartDiet</div>
+            <div style='display:flex; flex-direction:column; gap:0.7rem;'>
+                <div class='sd-mini-box'>
+                    Many people want healthier food choices, but they are often unsure what to eat for each part of the day.
+                </div>
+                <div class='sd-mini-box'>
+                    SmartDiet turns personal health details into practical meal recommendations so daily planning feels simpler and more useful.
+                </div>
+            </div>
+        </div>
+        <div class='sd-card' style='padding:1rem;'>
+            <div class='sd-card-title' style='margin-bottom:0.75rem;'>How to use it</div>
+            <div style='display:flex; flex-direction:column; gap:0.7rem;'>
+                <div class='sd-mini-box'>1. Enter your details in the left panel, including age, gender, height, weight, and food preference.</div>
+                <div class='sd-mini-box'>2. Choose the health condition that best matches you and click <strong>Generate Smart Plan</strong>.</div>
+                <div class='sd-mini-box'>3. Review your recommended meals, nutrition summary, and helpful daily tips.</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
-
 
 if condition == "healthy" and bmi_cat == "Obese":
     st.markdown("""
-    <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
-        <strong>Smart adjustment:</strong> based on your BMI, the plan has been nudged toward weight management for safer recommendations.
+    <div class='sd-alert' style='background:#FFF8E8; border-left-color:#FFB020; color:#8A4B00;'>
+        <strong>Smart adjustment:</strong> based on your BMI, the plan has been shifted toward weight management for more suitable recommendations.
     </div>
     """, unsafe_allow_html=True)
     condition = "obesity"
@@ -817,13 +821,12 @@ pred_label, pred_icon, pred_color, pred_bg = CONDITION_DISPLAY.get(pred_conditio
 confidence_pct = int(confidence * 100)
 
 ASSESSMENT_MESSAGES = {
-    "healthy": "Your nutritional profile looks balanced. Keep your daily routine consistent and hydrated.",
-    "diabetes": "Meals are prioritised to support steadier blood sugar and controlled carbohydrate load.",
+    "healthy": "Your nutritional profile looks balanced. Keep your routine consistent and hydrated.",
+    "diabetes": "Meals are chosen to support steadier blood sugar and better carbohydrate control.",
     "hypertension": "The plan prefers lower-sodium choices that are friendlier for blood pressure management.",
     "obesity": "Meals are selected to stay satisfying while keeping daily energy intake more controlled.",
 }
 
-st.markdown("<div class='sd-grid-2'>", unsafe_allow_html=True)
 left_col, right_col = st.columns([1.15, 0.85])
 with left_col:
     render_profile_card(
@@ -852,9 +855,9 @@ st.markdown("""
 <div class='sd-section-head'>
     <div>
         <div class='sd-section-title'>Meal planner</div>
-        <div class='sd-section-sub'>Four structured meal windows matched to your calorie target and health profile.</div>
+        <div class='sd-section-sub'>Breakfast, lunch, snack, and dinner recommendations matched to your daily calorie target.</div>
     </div>
-    <div class='sd-badge'>Target: personalised and flexible</div>
+    <div class='sd-badge'>Personalized suggestions</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -870,13 +873,13 @@ for tab, slot in zip(tabs, slots):
         st.markdown(f"""
         <div class='sd-meal-banner'>
             <strong style='color:#17442F;'>Target for this meal:</strong>
-            <span style='color:#3A5A4D;'> around <strong>{target_cal} kcal</strong> with a natural flexibility of ±50 kcal</span>
+            <span style='color:#3A5A4D;'> around <strong>{target_cal} kcal</strong> with a flexibility of ±50 kcal</span>
         </div>
         """, unsafe_allow_html=True)
 
         if not recs:
             st.markdown("""
-            <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
+            <div class='sd-alert' style='background:#FFF8E8; border-left-color:#FFB020; color:#8A4B00;'>
                 No close meal match was found for this slot with the current diet preference.
             </div>
             """, unsafe_allow_html=True)
@@ -942,10 +945,10 @@ if best_per_slot:
     st.markdown("""
     <div class='sd-section-head'>
         <div>
-            <div class='sd-section-title'>Today’s nutrition at a glance</div>
+            <div class='sd-section-title'>Today's nutrition summary</div>
             <div class='sd-section-sub'>A simple summary of your daily calories and macronutrients.</div>
         </div>
-        <div class='sd-badge'>Daily macro overview</div>
+        <div class='sd-badge'>Daily overview</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -962,13 +965,13 @@ if best_per_slot:
     if abs(diff) <= 100:
         st.markdown(f"""
         <div class='sd-alert' style='background:#ECF8F0; border-left-color:#1DB954; color:#1F5B34;'>
-            <strong>You’re on track.</strong> Your plan totals <strong>{total_cal:.0f} kcal</strong>, which is close to your target of <strong>{daily_cal} kcal</strong>.
+            <strong>You're on track.</strong> Your plan totals <strong>{total_cal:.0f} kcal</strong>, which is close to your target of <strong>{daily_cal} kcal</strong>.
         </div>
         """, unsafe_allow_html=True)
     else:
         direction = "above" if diff > 0 else "below"
         st.markdown(f"""
-        <div class='sd-alert' style='background:var(--warning-soft); border-left-color:#FFB020; color:#8A4B00;'>
+        <div class='sd-alert' style='background:#FFF8E8; border-left-color:#FFB020; color:#8A4B00;'>
             <strong>Adjustment suggested.</strong> Your plan is <strong>{abs(diff):.0f} kcal {direction}</strong> your current target of <strong>{daily_cal} kcal</strong>.
         </div>
         """, unsafe_allow_html=True)
@@ -1022,7 +1025,15 @@ if best_per_slot:
         st.pyplot(fig)
         plt.close()
 
-st.markdown("<div class='sd-section-head'><div><div class='sd-section-title'>Diet tips</div><div class='sd-section-sub'>Simple guidance based on the selected health condition.</div></div><div class='sd-badge'>Actionable suggestions</div></div>", unsafe_allow_html=True)
+st.markdown("""
+<div class='sd-section-head'>
+    <div>
+        <div class='sd-section-title'>Diet tips</div>
+        <div class='sd-section-sub'>Simple guidance based on the selected health condition.</div>
+    </div>
+    <div class='sd-badge'>Helpful tips</div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<div class='sd-card sd-tips'>", unsafe_allow_html=True)
 for icon, tip in CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"]):
@@ -1031,6 +1042,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("""
 <div class='sd-footer-note'>
-    SmartDiet is a decision-support interface for meal guidance and should not replace clinical advice from a qualified doctor or dietitian.
+    SmartDiet is a meal guidance tool and should not replace advice from a qualified doctor or dietitian.
 </div>
 """, unsafe_allow_html=True)
