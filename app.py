@@ -487,7 +487,6 @@ def load_all():
 
 rf, gb, scaler, le_target, le_diet, le_meal, le_dish, meals_df, meta = load_all()
 
-
 def calculate_daily_calories(weight, height, age, gender, condition):
     if gender == "Male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
@@ -507,7 +506,6 @@ def calculate_daily_calories(weight, height, age, gender, condition):
         target = tdee
 
     return round(target)
-
 
 SLOT_CALORIE_SPLIT = {
     "breakfast": 0.25,
@@ -567,7 +565,6 @@ CONDITION_TIPS = {
     ],
 }
 
-
 def get_bmi_category(bmi):
     if bmi < 18.5:
         return "Slightly Slim"
@@ -577,14 +574,12 @@ def get_bmi_category(bmi):
         return "Overweight"
     return "Obese"
 
-
 def get_diet_options(preference):
     if preference == "Vegetarian":
         return ["vegetarian"]
     elif preference == "Non-Vegetarian":
         return ["non_vegetarian"]
     return ["vegetarian", "non_vegetarian"]
-
 
 def recommend_for_slot(condition, diet_pref, slot, target_cal, tolerance=50):
     diet_opts = get_diet_options(diet_pref)
@@ -626,7 +621,6 @@ def recommend_for_slot(condition, diet_pref, slot, target_cal, tolerance=50):
     ]
     return top3[cols].to_dict("records")
 
-
 def run_ml_prediction(condition, diet_pref):
     sample_meals = meals_df[meals_df["condition"] == condition]
     if sample_meals.empty:
@@ -655,7 +649,6 @@ def run_ml_prediction(condition, diet_pref):
     confidence = float(proba.max())
     return pred, confidence
 
-
 def render_hero(name):
     greeting = f"Hey {name}, your SmartDiet plan is ready" if name else "Your SmartDiet plan is ready"
     st.markdown(f"""
@@ -668,7 +661,6 @@ def render_hero(name):
         </p>
     </div>
     """, unsafe_allow_html=True)
-
 
 def render_profile_card(age, gender, height, weight, bmi, fit_msg, fit_icon, condition_label, condition_icon, diet_label, daily_cal):
     st.markdown(f"""
@@ -688,7 +680,6 @@ def render_profile_card(age, gender, height, weight, bmi, fit_msg, fit_icon, con
     </div>
     """, unsafe_allow_html=True)
 
-
 def render_assessment_card(pred_label, pred_icon, pred_color, confidence_pct, assessment_message):
     st.markdown(f"""
     <div class='sd-card sd-assessment' style='background: linear-gradient(135deg, {pred_color} 0%, {pred_color}DD 100%);'>
@@ -703,7 +694,6 @@ def render_assessment_card(pred_label, pred_icon, pred_color, confidence_pct, as
         </div>
     </div>
     """, unsafe_allow_html=True)
-
 
 if "show_plan" not in st.session_state:
     st.session_state.show_plan = False
@@ -899,10 +889,13 @@ for tab, slot in zip(tabs, slots):
             diff = meal["calories_slot"] - target_cal
             diff_label = f"+{diff:.0f} kcal" if diff > 5 else (f"{diff:.0f} kcal" if diff < -5 else "on target")
             diet_tag = "Veg" if meal["diet"] == "vegetarian" else "Non-veg"
+
             with st.expander(f"{'⭐ ' if i == 0 else ''}{meal['title']} · {meal['calories_slot']:.0f} kcal · {diet_tag}", expanded=(i == 0)):
                 if i == 0:
                     st.markdown("<div style='display:inline-block; margin-bottom:0.75rem; background:#14221B; color:#FFFFFF; padding:0.38rem 0.8rem; border-radius:999px; font-size:0.78rem; font-weight:800;'>Best fit for this slot</div>", unsafe_allow_html=True)
+
                 c1, c2 = st.columns([1, 1])
+
                 with c1:
                     st.markdown(f"""
                     <div style='padding:0.3rem 0.2rem 0.1rem 0.2rem;'>
@@ -923,6 +916,7 @@ for tab, slot in zip(tabs, slots):
                     fig, ax = plt.subplots(figsize=(4.1, 2.65))
                     fig.patch.set_facecolor("#FFFFFF")
                     ax.set_facecolor("#FFFFFF")
+
                     bar_labels = ["Energy", "Carbs", "Fat"]
                     meal_vals = [meal["calories_slot"], meal["carbs_slot"], meal["fat_slot"]]
                     limit_vals = [target_cal, SLOT_CARB_LIMITS[condition], SLOT_FAT_LIMITS[condition]]
@@ -985,12 +979,14 @@ if best_per_slot:
         """, unsafe_allow_html=True)
 
     chart_col_1, chart_col_2 = st.columns(2)
+
     with chart_col_1:
         st.markdown("<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Nutrition balance</div></div>", unsafe_allow_html=True)
         fig, ax = plt.subplots(figsize=(4.3, 3.6))
         fig.patch.set_facecolor("#FFFFFF")
+
         macro_vals = [total_prot * 4, total_fat * 9, total_carb * 4]
-        macro_labels = [f"Protein\n{total_prot:.0f}g", f"Fat\n{total_fat:.0f}g", f"Carbs\n{total_carb:.0f}g"]
+        macro_labels = [f"Protein\\n{total_prot:.0f}g", f"Fat\\n{total_fat:.0f}g", f"Carbs\\n{total_carb:.0f}g"]
         wedges, texts, autotexts = ax.pie(
             macro_vals,
             labels=macro_labels,
@@ -1003,6 +999,7 @@ if best_per_slot:
             t.set_fontsize(9)
             t.set_color("white")
             t.set_fontweight("bold")
+
         plt.tight_layout(pad=0.65)
         st.pyplot(fig)
         plt.close()
@@ -1012,6 +1009,7 @@ if best_per_slot:
         fig, ax = plt.subplots(figsize=(4.3, 3.6))
         fig.patch.set_facecolor("#FFFFFF")
         ax.set_facecolor("#FFFFFF")
+
         snames = list(best_per_slot.keys())
         scals = [best_per_slot[s]["calories_slot"] for s in snames]
         stargs = [int(daily_cal * SLOT_CALORIE_SPLIT[s]) for s in snames]
@@ -1033,7 +1031,19 @@ if best_per_slot:
         st.pyplot(fig)
         plt.close()
 
-st.markdown("""
+tips = CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"])
+
+tips_html = "".join(
+    f"""
+    <div class='sd-tip'>
+        <div style='font-size:1.25rem;'>{icon}</div>
+        <div>{tip}</div>
+    </div>
+    """
+    for icon, tip in tips
+)
+
+st.markdown(f"""
 <div class='sd-section-head'>
     <div>
         <div class='sd-section-title'>Diet tips</div>
@@ -1041,12 +1051,11 @@ st.markdown("""
     </div>
     <div class='sd-badge'>Helpful tips</div>
 </div>
-""", unsafe_allow_html=True)
 
-st.markdown("<div class='sd-card sd-tips'>", unsafe_allow_html=True)
-for icon, tip in CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"]):
-    st.markdown(f"<div class='sd-tip'><div style='font-size:1.25rem;'>{icon}</div><div>{tip}</div></div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+<div class='sd-card sd-tips'>
+    {tips_html}
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("""
 <div class='sd-footer-note'>
