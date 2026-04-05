@@ -790,6 +790,9 @@ if not st.session_state.show_plan:
                 <div class='sd-mini-box'>
                     SmartDiet turns personal health details into practical meal recommendations so daily planning feels simpler and more useful.
                 </div>
+                <div class='sd-mini-box'>
+                    It combines body profile, calorie needs, health condition, and food preference to create a more personalized meal plan.
+                </div>
             </div>
         </div>
         <div class='sd-card' style='padding:1rem;'>
@@ -799,6 +802,11 @@ if not st.session_state.show_plan:
                 <div class='sd-mini-box'>2. Choose the health condition that best matches you and click <strong>Generate Smart Plan</strong>.</div>
                 <div class='sd-mini-box'>3. Review your recommended meals, nutrition summary, and helpful daily tips.</div>
             </div>
+        </div>
+    </div>
+    <div class='sd-card' style='padding:0.9rem 1rem; margin-top:0.9rem;'>
+        <div style='font-size:0.95rem; color:#31493F; line-height:1.7;'>
+            <strong>What you get after generating the plan:</strong> a daily calorie target, meal suggestions for breakfast, lunch, snack, and dinner, a nutrition summary, and simple food guidance based on your selected condition.
         </div>
     </div>
     """, unsafe_allow_html=True)
