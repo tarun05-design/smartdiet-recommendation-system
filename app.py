@@ -468,6 +468,23 @@ section[data-testid="stSidebar"] .stButton button:hover {
     line-height: 1.5;
 }
 
+/* ── Stat cards: nuclear option to prevent any override ── */
+.stat-card p {
+    color: inherit !important;
+}
+
+/* Fix p tags inside markdown — Streamlit sometimes makes them transparent */
+.stMarkdown p {
+    color: #1A2F2A !important;
+}
+
+/* These need to stay white always — re-override for dark cards */
+.hero-banner .stMarkdown p,
+.profile-card .stMarkdown p,
+.summary-card .stMarkdown p {
+    color: white !important;
+}
+
 .disclaimer {
     text-align: center;
     color: #999;
@@ -492,56 +509,6 @@ section[data-testid="stSidebar"] .stButton button:hover {
     background: #69F0AE;
     transition: width 0.6s ease;
 }
-
-.summary-top-banner, .summary-top-banner * {
-    color: white !important;
-}
-
-.summary-stat-card, .summary-stat-card * {
-    color: #1A2F2A !important;
-}
-
-.summary-stat-card .summary-stat-icon {
-    font-size: 1.5rem;
-    line-height: 1;
-}
-
-.summary-stat-card .summary-stat-value {
-    font-size: 1.35rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin: 0.3rem 0 0.1rem 0;
-    color: #1A2F2A !important;
-}
-
-.summary-stat-card .summary-stat-label {
-    font-size: 0.78rem;
-    color: #355B52 !important;
-    line-height: 1.4;
-    font-weight: 700;
-}
-
-.section-title-light {
-    color: white !important;
-    font-family: 'Lora', serif !important;
-    font-size: 1.75rem !important;
-    font-weight: 700 !important;
-    margin: 0 !important;
-}
-
-.chart-block-title {
-    color: #1A2F2A !important;
-    font-size: 1.05rem !important;
-    font-weight: 800 !important;
-    margin: 0 0 0.25rem 0 !important;
-}
-
-.chart-block-subtitle {
-    color: #58706A !important;
-    font-size: 0.95rem !important;
-    margin: 0 0 0.85rem 0 !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -565,13 +532,27 @@ def load_all():
 
 rf, gb, scaler, le_target, le_diet, le_meal, le_dish, meals_df, meta = load_all()
 
-# ── Backend constants (unchanged) ─────────────────────────────────────────────
-DAILY_CALORIE_TARGETS = {
-    "diabetes":     1600,
-    "hypertension": 1800,
-    "obesity":      1400,
-    "healthy":      2000,
-}
+# ── BMR-based daily calorie calculator (Mifflin-St Jeor + condition adjustment) ──
+def calculate_daily_calories(weight, height, age, gender, condition):
+    if gender == "Male":
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
+    else:
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
+
+    tdee = round(bmr * 1.2)
+
+    min_cal = 1500 if gender == "Male" else 1200
+
+    if condition == "diabetes":
+        target = max(tdee - 500, min_cal)
+    elif condition == "hypertension":
+        target = tdee
+    elif condition == "obesity":
+        target = max(tdee - 600, min_cal)
+    else:
+        target = tdee
+
+    return round(target)
 
 SLOT_CALORIE_SPLIT = {
     "breakfast": 0.25,
@@ -737,6 +718,7 @@ with st.sidebar:
 
     name   = st.text_input("What's your name?", placeholder="e.g. Priya")
     age    = st.slider("How old are you?", 10, 90, 35)
+    gender = st.radio("", ["Female", "Male"], horizontal=True, label_visibility="collapsed")
 
     st.markdown("<p style='color:#A5D6A7; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin: 0.8rem 0 0.2rem 0;'>📏 Your measurements</p>", unsafe_allow_html=True)
 
@@ -865,13 +847,13 @@ if condition == "healthy" and bmi_cat == "Obese":
 # ── Your Profile card ─────────────────────────────────────────────────────────
 cond_label, cond_icon, cond_color, cond_bg = CONDITION_DISPLAY[condition]
 fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
-daily_cal = DAILY_CALORIE_TARGETS[condition]
+daily_cal = calculate_daily_calories(weight, height, age, gender, condition)
 
 st.markdown(f"""
 <div class='profile-card'>
     <h2 style='font-family: Lora, serif; font-size: 1.6rem; margin: 0 0 1rem 0;
                color: #C8E6C9 !important;'>Your Profile</h2>
-    <span class='profile-pill' style='color:white !important;'>{fit_icon} {age} years old</span>
+    <span class='profile-pill' style='color:white !important;'>{fit_icon} {age} years old · {gender}</span>
     <span class='profile-pill' style='color:white !important;'>📏 {height:.0f} cm &nbsp; {weight:.0f} kg</span>
     <span class='profile-pill' style='color:white !important;'>⚖️ BMI {bmi:.1f} — {fit_msg}</span>
     <span class='profile-pill' style='color:white !important;'>{cond_icon} {cond_label}{" (" + diabetes_type + ")" if diabetes_type else ""}</span>
@@ -880,7 +862,7 @@ st.markdown(f"""
     <span style='color: rgba(255,255,255,0.8) !important; font-size:0.9rem;'>
         Your daily calorie goal: &nbsp;
         <strong style='color: white !important; font-size:1.1rem;'>{daily_cal} kcal</strong>
-        &nbsp; — spread across 4 meals throughout the day
+        &nbsp; — calculated for your body using Mifflin-St Jeor formula
     </span>
 </div>
 """, unsafe_allow_html=True)
@@ -1051,9 +1033,12 @@ if best_per_slot:
     diff       = total_cal - daily_cal
 
     st.markdown(f"""
-    <div class='summary-top-banner' style='background: linear-gradient(135deg, #1A2F2A, #2E7D32);
+    <div style='background: linear-gradient(135deg, #1A2F2A, #2E7D32);
                 border-radius: 20px; padding: 1.6rem 2rem; margin-top: 1.5rem;'>
-        <h2 class='section-title-light'>📊 Today's Nutrition at a Glance</h2>
+        <h2 style='font-family: Lora, serif; color: #C8E6C9 !important;
+                   margin: 0; font-size: 1.5rem; font-weight: 600;'>
+            📊 Today's Nutrition at a Glance
+        </h2>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1068,12 +1053,15 @@ if best_per_slot:
 
     for col, val, lbl, icon in summary_items:
         col.markdown(f"""
-        <div class='summary-stat-card' style='background:white; border-radius:14px; padding:1rem;
-                    text-align:center; border:1.5px solid #C8E6C9;
-                    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-top:0.6rem;'>
-            <div class='summary-stat-icon'>{icon}</div>
-            <div class='summary-stat-value'>{val}</div>
-            <div class='summary-stat-label'>{lbl}</div>
+        <div style='background:#FFFFFF; border-radius:14px; padding:1rem 0.6rem;
+                    text-align:center; border:2px solid #A5D6A7;
+                    box-shadow:0 3px 10px rgba(46,125,50,0.12); margin-top:0.6rem;'>
+            <p style='font-size:1.6rem; line-height:1; margin:0; padding:0;
+                      color:#1A2F2A !important;'>{icon}</p>
+            <p style='font-size:1.4rem; font-weight:800; margin:0.3rem 0 0.1rem 0;
+                      padding:0; color:#1A2F2A !important; line-height:1.2;'>{val}</p>
+            <p style='font-size:0.72rem; color:#2E7D32 !important; margin:0; padding:0;
+                      line-height:1.4; font-weight:700;'>{lbl}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1107,10 +1095,8 @@ if best_per_slot:
     col_pie, col_bar = st.columns(2)
 
     with col_pie:
-        st.markdown("""
-        <p class='chart-block-title'>Nutrition Balance</p>
-        <p class='chart-block-subtitle'>How your energy is split between the three main nutrients</p>
-        """, unsafe_allow_html=True)
+        st.markdown("**Nutrition Balance**")
+        st.caption("How your energy is split between the three main nutrients")
         fig, ax = plt.subplots(figsize=(4, 3.5))
         fig.patch.set_facecolor("#FDFAF6")
         macro_vals   = [total_prot * 4, total_fat * 9, total_carb * 4]
@@ -1129,10 +1115,8 @@ if best_per_slot:
         plt.close()
 
     with col_bar:
-        st.markdown("""
-        <p class='chart-block-title'>How your meals compare to your goal</p>
-        <p class='chart-block-subtitle'>Green = what we recommend, Grey = your daily target</p>
-        """, unsafe_allow_html=True)
+        st.markdown("**How your meals compare to your goal**")
+        st.caption("Green = what we recommend, Grey = your daily target")
         fig, ax = plt.subplots(figsize=(4, 3.5))
         fig.patch.set_facecolor("#FDFAF6")
         ax.set_facecolor("#FDFAF6")
