@@ -49,12 +49,16 @@ h1, h2, h3 {
     color: white !important;
 }
 
-.hero-banner .hero-sub              { color: rgba(255,255,255,0.85) !important; }
-.profile-card h2                    { color: #C8E6C9 !important; }
-.summary-card h2                    { color: #C8E6C9 !important; }
-.assessment-card .assessment-msg    { color: rgba(255,255,255,0.9) !important; }
-.assessment-card .confidence-label  { color: rgba(255,255,255,0.8) !important; }
-.profile-pill                       { color: white !important; }
+/* Re-override stApp rule specifically for dark card p and span tags */
+.hero-banner p, .hero-banner span,
+.profile-card p, .profile-card span,
+.assessment-card p, .assessment-card span,
+.summary-card p, .summary-card span {
+    color: white !important;
+}
+
+.profile-card h2, .summary-card h2  { color: #C8E6C9 !important; }
+.profile-pill                        { color: white !important; }
 
 /* ── Streamlit tab labels — force dark text on light bg ── */
 .stTabs [data-baseweb="tab-list"] {
@@ -473,15 +477,20 @@ section[data-testid="stSidebar"] .stButton button:hover {
     color: inherit !important;
 }
 
-/* Fix p tags inside markdown — Streamlit sometimes makes them transparent */
+/* Fix p tags inside ALL Streamlit markdown areas */
 .stMarkdown p {
     color: #1A2F2A !important;
 }
 
-/* These need to stay white always — re-override for dark cards */
-.hero-banner .stMarkdown p,
-.profile-card .stMarkdown p,
-.summary-card .stMarkdown p {
+/* Re-override for dark cards — higher specificity, must come AFTER stMarkdown */
+div.hero-banner p,
+div.hero-banner .stMarkdown p,
+div.profile-card p,
+div.profile-card .stMarkdown p,
+div.summary-card p,
+div.summary-card .stMarkdown p,
+div.assessment-card p,
+div.assessment-card .stMarkdown p {
     color: white !important;
 }
 
@@ -781,13 +790,17 @@ with st.sidebar:
 # ── Hero banner ───────────────────────────────────────────────────────────────
 greeting = f"Hello, {name}!" if name else "Welcome to SmartDiet"
 st.markdown(f"""
-<div class='hero-banner'>
-    <p style='font-family: Lora, serif; font-size: 2.6rem; font-weight: 600;
-              color: white !important; margin: 0 0 0.4rem 0; line-height: 1.2;'>
+<div class='hero-banner' style='background:linear-gradient(135deg,#1A2F2A 0%,#2E7D32 60%,#388E3C 100%);
+     border-radius:20px; padding:2.5rem 3rem; color:white; margin-bottom:1.5rem;
+     position:relative; overflow:hidden;'>
+    <p style='font-family:Lora,serif; font-size:2.6rem; font-weight:600;
+              color:white !important; margin:0 0 0.4rem 0; line-height:1.2;
+              text-shadow: 0 1px 3px rgba(0,0,0,0.3);'>
         {greeting}
     </p>
-    <p style='font-size: 1.05rem; color: rgba(255,255,255,0.88) !important;
-              margin: 0; font-weight: 400; line-height: 1.6;'>
+    <p style='font-size:1.05rem; color:rgba(255,255,255,0.92) !important;
+              margin:0; font-weight:400; line-height:1.6;
+              text-shadow: 0 1px 2px rgba(0,0,0,0.2);'>
         Your personalised meal guide for a healthier, happier life —<br>
         built around the foods you already love.
     </p>
@@ -850,20 +863,31 @@ fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
 daily_cal = calculate_daily_calories(weight, height, age, gender, condition)
 
 st.markdown(f"""
-<div class='profile-card'>
-    <h2 style='font-family: Lora, serif; font-size: 1.6rem; margin: 0 0 1rem 0;
-               color: #C8E6C9 !important;'>Your Profile</h2>
-    <span class='profile-pill' style='color:white !important;'>{fit_icon} {age} years old · {gender}</span>
-    <span class='profile-pill' style='color:white !important;'>📏 {height:.0f} cm &nbsp; {weight:.0f} kg</span>
-    <span class='profile-pill' style='color:white !important;'>⚖️ BMI {bmi:.1f} — {fit_msg}</span>
-    <span class='profile-pill' style='color:white !important;'>{cond_icon} {cond_label}{" (" + diabetes_type + ")" if diabetes_type else ""}</span>
-    <span class='profile-pill' style='color:white !important;'>🥗 {diet_sel}</span>
+<div style='background:linear-gradient(135deg,#1A2F2A,#2E7D32); border-radius:20px;
+            padding:1.8rem 2rem; color:white; margin-bottom:1.5rem;'>
+    <p style='font-family:Lora,serif; font-size:1.6rem; font-weight:600;
+              color:#C8E6C9 !important; margin:0 0 1rem 0;'>Your Profile</p>
+    <span style='display:inline-block; background:rgba(255,255,255,0.15);
+                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
+                 font-size:0.9rem; font-weight:600; color:white !important;'>{fit_icon} {age} years old · {gender}</span>
+    <span style='display:inline-block; background:rgba(255,255,255,0.15);
+                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
+                 font-size:0.9rem; font-weight:600; color:white !important;'>📏 {height:.0f} cm &nbsp; {weight:.0f} kg</span>
+    <span style='display:inline-block; background:rgba(255,255,255,0.15);
+                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
+                 font-size:0.9rem; font-weight:600; color:white !important;'>⚖️ BMI {bmi:.1f} — {fit_msg}</span>
+    <span style='display:inline-block; background:rgba(255,255,255,0.15);
+                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
+                 font-size:0.9rem; font-weight:600; color:white !important;'>{cond_icon} {cond_label}{" (" + diabetes_type + ")" if diabetes_type else ""}</span>
+    <span style='display:inline-block; background:rgba(255,255,255,0.15);
+                 border-radius:50px; padding:0.35rem 1rem; margin:0.2rem;
+                 font-size:0.9rem; font-weight:600; color:white !important;'>🥗 {diet_sel}</span>
     <br><br>
-    <span style='color: rgba(255,255,255,0.8) !important; font-size:0.9rem;'>
+    <p style='color:rgba(255,255,255,0.85) !important; font-size:0.9rem; margin:0;'>
         Your daily calorie goal: &nbsp;
-        <strong style='color: white !important; font-size:1.1rem;'>{daily_cal} kcal</strong>
-        &nbsp; — calculated for your body using Mifflin-St Jeor formula
-    </span>
+        <strong style='color:white !important; font-size:1.15rem;'>{daily_cal} kcal</strong>
+        &nbsp; — calculated for your body using the Mifflin-St Jeor formula
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1033,12 +1057,13 @@ if best_per_slot:
     diff       = total_cal - daily_cal
 
     st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #1A2F2A, #2E7D32);
-                border-radius: 20px; padding: 1.6rem 2rem; margin-top: 1.5rem;'>
-        <h2 style='font-family: Lora, serif; color: #C8E6C9 !important;
-                   margin: 0; font-size: 1.5rem; font-weight: 600;'>
+    <div style='background:linear-gradient(135deg,#1A2F2A,#2E7D32);
+                border-radius:20px; padding:1.6rem 2rem; margin-top:1.5rem;'>
+        <p style='font-family:Lora,serif; color:#C8E6C9 !important;
+                  margin:0; font-size:1.5rem; font-weight:600;
+                  text-shadow:0 1px 3px rgba(0,0,0,0.3);'>
             📊 Today's Nutrition at a Glance
-        </h2>
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
