@@ -892,7 +892,10 @@ for tab, slot in zip(tabs, slots):
 
             with st.expander(f"{'⭐ ' if i == 0 else ''}{meal['title']} · {meal['calories_slot']:.0f} kcal · {diet_tag}", expanded=(i == 0)):
                 if i == 0:
-                    st.markdown("<div style='display:inline-block; margin-bottom:0.75rem; background:#14221B; color:#FFFFFF; padding:0.38rem 0.8rem; border-radius:999px; font-size:0.78rem; font-weight:800;'>Best fit for this slot</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        "<div style='display:inline-block; margin-bottom:0.75rem; background:#14221B; color:#FFFFFF; padding:0.38rem 0.8rem; border-radius:999px; font-size:0.78rem; font-weight:800;'>Best fit for this slot</div>",
+                        unsafe_allow_html=True
+                    )
 
                 c1, c2 = st.columns([1, 1])
 
@@ -926,7 +929,7 @@ for tab, slot in zip(tabs, slots):
                     ax.bar(xp + 0.2, limit_vals, 0.35, label="Target", color="#C8D3CD", alpha=0.95)
                     ax.set_xticks(xp)
                     ax.set_xticklabels(bar_labels, fontsize=8.5, color="#4D6258")
-                    ax.tick_params(axis='y', labelsize=8, colors="#6A7A73")
+                    ax.tick_params(axis="y", labelsize=8, colors="#6A7A73")
                     ax.spines["top"].set_visible(False)
                     ax.spines["right"].set_visible(False)
                     ax.spines["left"].set_color("#DFE8E2")
@@ -981,12 +984,15 @@ if best_per_slot:
     chart_col_1, chart_col_2 = st.columns(2)
 
     with chart_col_1:
-        st.markdown("<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Nutrition balance</div></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Nutrition balance</div></div>",
+            unsafe_allow_html=True
+        )
         fig, ax = plt.subplots(figsize=(4.3, 3.6))
         fig.patch.set_facecolor("#FFFFFF")
 
         macro_vals = [total_prot * 4, total_fat * 9, total_carb * 4]
-        macro_labels = [f"Protein\\n{total_prot:.0f}g", f"Fat\\n{total_fat:.0f}g", f"Carbs\\n{total_carb:.0f}g"]
+        macro_labels = [f"Protein\n{total_prot:.0f}g", f"Fat\n{total_fat:.0f}g", f"Carbs\n{total_carb:.0f}g"]
         wedges, texts, autotexts = ax.pie(
             macro_vals,
             labels=macro_labels,
@@ -1005,7 +1011,10 @@ if best_per_slot:
         plt.close()
 
     with chart_col_2:
-        st.markdown("<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Meal vs target comparison</div></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='sd-card' style='padding:1rem 1rem 0.35rem 1rem;'><div class='sd-card-title' style='font-size:1.05rem;'>Meal vs target comparison</div></div>",
+            unsafe_allow_html=True
+        )
         fig, ax = plt.subplots(figsize=(4.3, 3.6))
         fig.patch.set_facecolor("#FFFFFF")
         ax.set_facecolor("#FFFFFF")
@@ -1021,7 +1030,7 @@ if best_per_slot:
         ax.set_xticks(xp)
         ax.set_xticklabels(friendly_names, fontsize=9, color="#4D6258")
         ax.set_ylabel("Calories", fontsize=8.5, color="#6A7A73")
-        ax.tick_params(axis='y', labelsize=8, colors="#6A7A73")
+        ax.tick_params(axis="y", labelsize=8, colors="#6A7A73")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.spines["left"].set_color("#DFE8E2")
@@ -1033,17 +1042,13 @@ if best_per_slot:
 
 tips = CONDITION_TIPS.get(condition, CONDITION_TIPS["healthy"])
 
-tips_html = "".join(
-    f"""
-    <div class='sd-tip'>
-        <div style='font-size:1.25rem;'>{icon}</div>
-        <div>{tip}</div>
-    </div>
-    """
+tips_html = "".join([
+    f"<div class='sd-tip'><div style='font-size:1.25rem;'>{icon}</div><div>{tip}</div></div>"
     for icon, tip in tips
-)
+])
 
-st.markdown(f"""
+st.markdown(
+    f"""
 <div class='sd-section-head'>
     <div>
         <div class='sd-section-title'>Diet tips</div>
@@ -1055,7 +1060,9 @@ st.markdown(f"""
 <div class='sd-card sd-tips'>
     {tips_html}
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True
+)
 
 st.markdown("""
 <div class='sd-footer-note'>
