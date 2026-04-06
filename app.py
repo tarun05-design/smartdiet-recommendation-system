@@ -16,9 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =========================
-# THEME / CSS
-# =========================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap');
@@ -62,7 +59,7 @@ header[data-testid="stHeader"] {
     position: fixed;
 }
 
-/* Desktop sidebar */
+/* Sidebar */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0F1E18 0%, #153126 100%) !important;
     border-right: 1px solid rgba(255,255,255,0.06);
@@ -169,7 +166,7 @@ section[data-testid="stSidebar"] .stForm button:hover {
     padding: 0.4rem 0.35rem 0.8rem 0.35rem;
 }
 
-/* Shared cards */
+/* Main cards */
 .sd-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -447,32 +444,30 @@ section[data-testid="stSidebar"] .stForm button:hover {
     color: #728078;
 }
 
-/* Mobile top form */
-.mobile-form-wrap {
+.mobile-help {
     display: none;
-    margin-bottom: 1rem;
-}
-
-.mobile-form-card {
+    margin-top: 0.85rem;
+    padding: 0.95rem 1rem;
     background: #FFFFFF;
     border: 1px solid var(--line);
-    border-radius: 24px;
+    border-radius: 18px;
     box-shadow: var(--shadow-soft);
-    padding: 1rem;
+    color: #1E3128;
 }
 
-.mobile-form-card .stButton button,
-.mobile-form-card .stForm button {
-    width: 100%;
-    height: 50px;
-    border: none;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--primary) 0%, #41C96C 100%) !important;
-    color: white !important;
+.mobile-help-title {
+    font-size: 1rem;
     font-weight: 800;
+    color: #15221B;
+    margin-bottom: 0.35rem;
 }
 
-/* Responsive */
+.mobile-help-text {
+    font-size: 0.92rem;
+    color: #55645D;
+    line-height: 1.6;
+}
+
 @media (max-width: 1100px) {
     .sd-grid-2 {
         grid-template-columns: 1fr;
@@ -484,18 +479,6 @@ section[data-testid="stSidebar"] .stForm button:hover {
 }
 
 @media (max-width: 768px) {
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
-
-    [data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
-    }
-
-    .mobile-form-wrap {
-        display: block !important;
-    }
-
     div.block-container {
         max-width: 100%;
         padding-left: 0.75rem;
@@ -523,13 +506,14 @@ section[data-testid="stSidebar"] .stForm button:hover {
         align-items: flex-start;
         flex-direction: column;
     }
+
+    .mobile-help {
+        display: block;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# MODEL LOADING
-# =========================
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
 
 @st.cache_resource
@@ -548,9 +532,6 @@ def load_all():
 
 rf, gb, scaler, le_target, le_diet, le_meal, le_dish, meals_df, meta = load_all()
 
-# =========================
-# HELPERS
-# =========================
 def calculate_daily_calories(weight, height, age, gender, condition):
     if gender == "Male":
         bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
@@ -643,13 +624,13 @@ CONDITION_MAP = {
     "Managing My Weight": "obesity",
 }
 
+DIET_OPTIONS = ["Only Vegetarian", "Non-Vegetarian", "Both are fine"]
+
 DIET_MAP = {
     "Only Vegetarian": "Vegetarian",
     "Non-Vegetarian": "Non-Vegetarian",
     "Both are fine": "Balanced",
 }
-
-DIET_OPTIONS = ["Only Vegetarian", "Non-Vegetarian", "Both are fine"]
 
 def get_bmi_category(bmi):
     if bmi < 18.5:
@@ -781,9 +762,6 @@ def render_assessment_card(pred_label, pred_icon, pred_color, confidence_pct, as
     </div>
     """, unsafe_allow_html=True)
 
-# =========================
-# STATE
-# =========================
 if "show_plan" not in st.session_state:
     st.session_state.show_plan = False
 
@@ -813,9 +791,6 @@ def apply_form_values(name, age, gender, height, weight, condition_sel, diet_sel
     st.session_state.diabetes_type = diabetes_type if condition_sel == "Managing Diabetes" else "Pre-Diabetic"
     st.session_state.show_plan = True
 
-# =========================
-# DESKTOP SIDEBAR FORM
-# =========================
 with st.sidebar:
     st.markdown("""
     <div style='padding: 0.3rem 0 1rem 0;'>
@@ -829,125 +804,77 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    with st.form("desktop_sidebar_form"):
+    with st.form("sidebar_form"):
         st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin-bottom:0.5rem;'>PERSONAL PROFILE</div>", unsafe_allow_html=True)
-        desk_name = st.text_input("Your name", value=st.session_state.name, placeholder="e.g. Priya")
+
+        form_name = st.text_input("Your name", value=st.session_state.name, placeholder="e.g. Priya")
 
         age_col, gender_col = st.columns(2)
         with age_col:
-            desk_age = st.slider("Age", 10, 90, st.session_state.age)
+            form_age = st.slider("Age", 10, 90, st.session_state.age)
         with gender_col:
-            desk_gender = st.selectbox(
+            form_gender = st.selectbox(
                 "Gender",
                 ["Female", "Male"],
                 index=["Female", "Male"].index(st.session_state.gender)
             )
 
-        desk_height = st.slider("Height (cm)", 120, 220, int(st.session_state.height))
-        desk_weight = st.slider("Weight (kg)", 30, 180, int(st.session_state.weight))
+        form_height = st.slider("Height (cm)", 120, 220, int(st.session_state.height))
+        form_weight = st.slider("Weight (kg)", 30, 180, int(st.session_state.weight))
 
-        desk_bmi = desk_weight / ((desk_height / 100) ** 2)
-        desk_bmi_cat = get_bmi_category(desk_bmi)
-        desk_fit_msg, desk_fit_icon, _, _ = FITNESS_DISPLAY[desk_bmi_cat]
+        form_bmi = form_weight / ((form_height / 100) ** 2)
+        form_bmi_cat = get_bmi_category(form_bmi)
+        form_fit_msg, form_fit_icon, _, _ = FITNESS_DISPLAY[form_bmi_cat]
 
         st.markdown(f"""
         <div style='background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:0.9rem 1rem; margin:0.65rem 0 1rem 0;'>
             <div style='display:flex; align-items:center; justify-content:space-between;'>
                 <div style='font-size:0.83rem; color:#B9D9C7;'>Current BMI</div>
-                <div style='font-size:0.83rem; color:#DDF7E6; font-weight:800;'>{desk_bmi_cat}</div>
+                <div style='font-size:0.83rem; color:#DDF7E6; font-weight:800;'>{form_bmi_cat}</div>
             </div>
-            <div style='font-size:2rem; font-weight:800; margin-top:0.25rem;'>{desk_bmi:.1f}</div>
-            <div style='font-size:0.9rem; color:#DDF7E6; margin-top:0.25rem;'>{desk_fit_icon} {desk_fit_msg}</div>
+            <div style='font-size:2rem; font-weight:800; margin-top:0.25rem;'>{form_bmi:.1f}</div>
+            <div style='font-size:0.9rem; color:#DDF7E6; margin-top:0.25rem;'>{form_fit_icon} {form_fit_msg}</div>
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin-bottom:0.5rem;'>HEALTH GOAL</div>", unsafe_allow_html=True)
-        desk_condition_sel = st.selectbox(
+
+        form_condition_sel = st.selectbox(
             "Which best describes you?",
             CONDITION_OPTIONS,
             index=CONDITION_OPTIONS.index(st.session_state.condition_sel)
         )
 
-        desk_diabetes_type = st.session_state.diabetes_type
-        if desk_condition_sel == "Managing Diabetes":
-            desk_diabetes_type = st.selectbox(
+        form_diabetes_type = st.session_state.diabetes_type
+        if form_condition_sel == "Managing Diabetes":
+            form_diabetes_type = st.selectbox(
                 "Diabetes type",
                 ["Pre-Diabetic", "Type 1", "Type 2"],
                 index=["Pre-Diabetic", "Type 1", "Type 2"].index(st.session_state.diabetes_type)
             )
 
         st.markdown("<div style='font-size:0.78rem; font-weight:800; color:#8EC9A8; margin:0.95rem 0 0.5rem 0;'>FOOD PREFERENCE</div>", unsafe_allow_html=True)
-        desk_diet_sel = st.radio(
+
+        form_diet_sel = st.radio(
             "Diet preference",
             DIET_OPTIONS,
             index=DIET_OPTIONS.index(st.session_state.diet_sel)
         )
 
-        desk_submit = st.form_submit_button("✨ Generate Smart Plan", use_container_width=True)
+        submitted = st.form_submit_button("✨ Generate Smart Plan", use_container_width=True)
 
-        if desk_submit:
+        if submitted:
             apply_form_values(
-                desk_name, desk_age, desk_gender, desk_height, desk_weight,
-                desk_condition_sel, desk_diet_sel, desk_diabetes_type
+                form_name,
+                form_age,
+                form_gender,
+                form_height,
+                form_weight,
+                form_condition_sel,
+                form_diet_sel,
+                form_diabetes_type
             )
 
-# =========================
-# MOBILE TOP FORM
-# =========================
-st.markdown("<div class='mobile-form-wrap'>", unsafe_allow_html=True)
-st.markdown("<div class='mobile-form-card'>", unsafe_allow_html=True)
-
-st.markdown("### Enter your details")
-
-with st.form("mobile_top_form"):
-    mob_name = st.text_input("Your name", value=st.session_state.name, placeholder="e.g. Priya", key="mob_name")
-    mob_age = st.slider("Age", 10, 90, st.session_state.age, key="mob_age")
-    mob_gender = st.selectbox(
-        "Gender",
-        ["Female", "Male"],
-        index=["Female", "Male"].index(st.session_state.gender),
-        key="mob_gender"
-    )
-    mob_height = st.slider("Height (cm)", 120, 220, int(st.session_state.height), key="mob_height")
-    mob_weight = st.slider("Weight (kg)", 30, 180, int(st.session_state.weight), key="mob_weight")
-
-    mob_condition_sel = st.selectbox(
-        "Which best describes you?",
-        CONDITION_OPTIONS,
-        index=CONDITION_OPTIONS.index(st.session_state.condition_sel),
-        key="mob_condition"
-    )
-
-    mob_diabetes_type = st.session_state.diabetes_type
-    if mob_condition_sel == "Managing Diabetes":
-        mob_diabetes_type = st.selectbox(
-            "Diabetes type",
-            ["Pre-Diabetic", "Type 1", "Type 2"],
-            index=["Pre-Diabetic", "Type 1", "Type 2"].index(st.session_state.diabetes_type),
-            key="mob_diabetes_type"
-        )
-
-    mob_diet_sel = st.radio(
-        "Diet preference",
-        DIET_OPTIONS,
-        index=DIET_OPTIONS.index(st.session_state.diet_sel),
-        key="mob_diet"
-    )
-
-    mob_submit = st.form_submit_button("✨ Generate Smart Plan", use_container_width=True)
-
-    if mob_submit:
-        apply_form_values(
-            mob_name, mob_age, mob_gender, mob_height, mob_weight,
-            mob_condition_sel, mob_diet_sel, mob_diabetes_type
-        )
-
-st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
-
-# =========================
-# USE CURRENT STATE
-# =========================
 name = st.session_state.name
 age = st.session_state.age
 gender = st.session_state.gender
@@ -962,16 +889,19 @@ diet_pref = DIET_MAP[diet_sel]
 
 bmi = weight / ((height / 100) ** 2)
 bmi_cat = get_bmi_category(bmi)
-fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
+fit_msg, fit_icon, _, _ = FITNESS_DISPLAY[bmi_cat]
 
-# =========================
-# HERO
-# =========================
 render_hero(name)
 
-# =========================
-# LANDING STATE
-# =========================
+st.markdown("""
+<div class='mobile-help'>
+    <div class='mobile-help-title'>Open the planner form</div>
+    <div class='mobile-help-text'>
+        On mobile, tap the arrow at the top-left to open the sidebar and enter your details.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 if not st.session_state.show_plan:
     st.markdown("""
     <div class='sd-grid-2' style='margin-top:0.9rem;'>
@@ -992,7 +922,7 @@ if not st.session_state.show_plan:
         <div class='sd-card' style='padding:1rem;'>
             <div class='sd-card-title' style='margin-bottom:0.75rem;'>How to use it</div>
             <div style='display:flex; flex-direction:column; gap:0.7rem;'>
-                <div class='sd-mini-box'>1. Enter your details in the form and choose what best describes you.</div>
+                <div class='sd-mini-box'>1. Open the planner form and enter your details.</div>
                 <div class='sd-mini-box'>2. Click <strong>Generate Smart Plan</strong> to create your personalized plan.</div>
                 <div class='sd-mini-box'>3. Review your meals, nutrition summary, and simple daily tips.</div>
             </div>
@@ -1006,9 +936,6 @@ if not st.session_state.show_plan:
     """, unsafe_allow_html=True)
     st.stop()
 
-# =========================
-# RESULTS
-# =========================
 if condition == "healthy" and bmi_cat == "Obese":
     st.markdown("""
     <div class='sd-alert' style='background:#FFF8E8; border-left-color:#FFB020; color:#8A4B00;'>
@@ -1018,7 +945,6 @@ if condition == "healthy" and bmi_cat == "Obese":
     condition = "obesity"
 
 cond_label, cond_icon, cond_color, cond_bg = CONDITION_DISPLAY[condition]
-fit_msg, fit_icon, fit_color, fit_bg = FITNESS_DISPLAY[bmi_cat]
 daily_cal = calculate_daily_calories(weight, height, age, gender, condition)
 
 pred_condition, confidence = run_ml_prediction(condition, diet_pref)
@@ -1033,6 +959,7 @@ ASSESSMENT_MESSAGES = {
 }
 
 left_col, right_col = st.columns([1.15, 0.85])
+
 with left_col:
     render_profile_card(
         age=age,
@@ -1047,6 +974,7 @@ with left_col:
         diet_label=diet_sel,
         daily_cal=daily_cal,
     )
+
 with right_col:
     render_assessment_card(
         pred_label=pred_label,
