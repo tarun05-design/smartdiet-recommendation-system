@@ -123,7 +123,12 @@ section[data-testid="stSidebar"] .stForm button:hover {
     background: linear-gradient(90deg, var(--primary-dark) 0%, #2FB85A 100%) !important;
 }
 
-/* Top popover button */
+/* Main-page mobile CTA button */
+section[data-testid="stMain"] .stButton {
+    display: none;
+}
+
+/* Dialog / popover trigger */
 div[data-testid="stPopover"] button {
     border-radius: 999px !important;
     font-weight: 700 !important;
@@ -450,6 +455,30 @@ div[data-testid="stPopover"] button {
     color: #728078;
 }
 
+.mobile-cta-note {
+    display: none;
+    margin-top: 0.85rem;
+    margin-bottom: 0.65rem;
+    padding: 0.95rem 1rem;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+}
+
+.mobile-cta-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #15221B;
+    margin-bottom: 0.3rem;
+}
+
+.mobile-cta-text {
+    font-size: 0.92rem;
+    color: #55645D;
+    line-height: 1.6;
+}
+
 @media (max-width: 1100px) {
     .sd-grid-2 {
         grid-template-columns: 1fr;
@@ -488,6 +517,35 @@ div[data-testid="stPopover"] button {
         align-items: flex-start;
         flex-direction: column;
     }
+
+    .mobile-cta-note {
+        display: block;
+    }
+
+    section[data-testid="stMain"] .stButton {
+        display: block;
+    }
+
+    section[data-testid="stMain"] .stButton > button {
+        width: 100%;
+        height: 52px;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #14221B 0%, #1B3D2E 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 800;
+        font-size: 1rem;
+        box-shadow: 0 10px 24px rgba(20, 34, 27, 0.18);
+    }
+
+    section[data-testid="stMain"] .stButton > button:hover {
+        background: linear-gradient(90deg, #0F1A15 0%, #163528 100%) !important;
+    }
+}
+
+/* Keep sidebar button visible */
+section[data-testid="stSidebar"] .stButton {
+    display: block !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -769,6 +827,56 @@ def apply_form_values(name, age, gender, height, weight, condition_sel, diet_sel
     st.session_state.diabetes_type = diabetes_type if condition_sel == "Managing Diabetes" else "Pre-Diabetic"
     st.session_state.show_plan = True
 
+@st.dialog("Plan your meals")
+def mobile_planner_dialog():
+    st.markdown("Fill in your details and tap **Generate Smart Plan**. You can close this form anytime using the **×** button above.")
+
+    with st.form("mobile_dialog_form"):
+        dialog_name = st.text_input("Your name", value=st.session_state.name, placeholder="e.g. Priya")
+        dialog_age = st.slider("Age", 10, 90, st.session_state.age)
+        dialog_gender = st.selectbox(
+            "Gender",
+            ["Female", "Male"],
+            index=["Female", "Male"].index(st.session_state.gender)
+        )
+        dialog_height = st.slider("Height (cm)", 120, 220, int(st.session_state.height))
+        dialog_weight = st.slider("Weight (kg)", 30, 180, int(st.session_state.weight))
+
+        dialog_condition_sel = st.selectbox(
+            "Which best describes you?",
+            CONDITION_OPTIONS,
+            index=CONDITION_OPTIONS.index(st.session_state.condition_sel)
+        )
+
+        dialog_diabetes_type = st.session_state.diabetes_type
+        if dialog_condition_sel == "Managing Diabetes":
+            dialog_diabetes_type = st.selectbox(
+                "Diabetes type",
+                ["Pre-Diabetic", "Type 1", "Type 2"],
+                index=["Pre-Diabetic", "Type 1", "Type 2"].index(st.session_state.diabetes_type)
+            )
+
+        dialog_diet_sel = st.radio(
+            "Diet preference",
+            DIET_OPTIONS,
+            index=DIET_OPTIONS.index(st.session_state.diet_sel)
+        )
+
+        dialog_submit = st.form_submit_button("✨ Generate Smart Plan", use_container_width=True)
+
+        if dialog_submit:
+            apply_form_values(
+                dialog_name,
+                dialog_age,
+                dialog_gender,
+                dialog_height,
+                dialog_weight,
+                dialog_condition_sel,
+                dialog_diet_sel,
+                dialog_diabetes_type
+            )
+            st.rerun()
+
 # Desktop sidebar form
 with st.sidebar:
     st.markdown("""
@@ -872,58 +980,18 @@ fit_msg, fit_icon, _, _ = FITNESS_DISPLAY[bmi_cat]
 
 render_hero(name)
 
-# Mobile-friendly popover fallback
-top_left, top_right = st.columns([5, 1])
-with top_right:
-    with st.popover("Open planner form"):
-        with st.form("popover_form"):
-            pop_name = st.text_input("Your name", value=st.session_state.name, placeholder="e.g. Priya", key="pop_name")
-            pop_age = st.slider("Age", 10, 90, st.session_state.age, key="pop_age")
-            pop_gender = st.selectbox(
-                "Gender",
-                ["Female", "Male"],
-                index=["Female", "Male"].index(st.session_state.gender),
-                key="pop_gender"
-            )
-            pop_height = st.slider("Height (cm)", 120, 220, int(st.session_state.height), key="pop_height")
-            pop_weight = st.slider("Weight (kg)", 30, 180, int(st.session_state.weight), key="pop_weight")
+st.markdown("""
+<div class='mobile-cta-note'>
+    <div class='mobile-cta-title'>Open planner form</div>
+    <div class='mobile-cta-text'>
+        On mobile, use this form to enter your details and generate your SmartDiet plan.
+        You can close it anytime.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-            pop_condition_sel = st.selectbox(
-                "Which best describes you?",
-                CONDITION_OPTIONS,
-                index=CONDITION_OPTIONS.index(st.session_state.condition_sel),
-                key="pop_condition_sel"
-            )
-
-            pop_diabetes_type = st.session_state.diabetes_type
-            if pop_condition_sel == "Managing Diabetes":
-                pop_diabetes_type = st.selectbox(
-                    "Diabetes type",
-                    ["Pre-Diabetic", "Type 1", "Type 2"],
-                    index=["Pre-Diabetic", "Type 1", "Type 2"].index(st.session_state.diabetes_type),
-                    key="pop_diabetes_type"
-                )
-
-            pop_diet_sel = st.radio(
-                "Diet preference",
-                DIET_OPTIONS,
-                index=DIET_OPTIONS.index(st.session_state.diet_sel),
-                key="pop_diet_sel"
-            )
-
-            pop_submit = st.form_submit_button("✨ Generate Smart Plan", use_container_width=True)
-
-            if pop_submit:
-                apply_form_values(
-                    pop_name,
-                    pop_age,
-                    pop_gender,
-                    pop_height,
-                    pop_weight,
-                    pop_condition_sel,
-                    pop_diet_sel,
-                    pop_diabetes_type
-                )
+if st.button("📋 Open planner form", use_container_width=True):
+    mobile_planner_dialog()
 
 if not st.session_state.show_plan:
     st.markdown("""
@@ -945,7 +1013,7 @@ if not st.session_state.show_plan:
         <div class='sd-card' style='padding:1rem;'>
             <div class='sd-card-title' style='margin-bottom:0.75rem;'>How to use it</div>
             <div style='display:flex; flex-direction:column; gap:0.7rem;'>
-                <div class='sd-mini-box'>1. Use the sidebar on desktop or the planner button near the top on mobile.</div>
+                <div class='sd-mini-box'>1. Use the sidebar on desktop or the planner button on mobile.</div>
                 <div class='sd-mini-box'>2. Click <strong>Generate Smart Plan</strong> to create your personalized plan.</div>
                 <div class='sd-mini-box'>3. Review your meals, nutrition summary, and simple daily tips.</div>
             </div>
