@@ -38,13 +38,13 @@ SmartDiet helps you find the right meals for your health condition — whether m
 
 ```mermaid
 flowchart TD
-    A[User Profile Input\nAge, Height, Weight, Preference] --> B[Health Condition & BMI Engine]
-    B --> C[Ideal Caloric Target Calculation]
-    C --> D[Pre-Trained ML Classifier\nRF & Gradient Boosting Models]
-    D --> E[IFCT 2017 Food Database Query]
-    E --> F[Macro & Sodium Constraint Filter]
-    F --> G["Partitioned Meal Outputs\nBreakfast (25%) | Lunch (35%) | Snack (10%) | Dinner (30%)"]
-    G --> H[Streamlit UI Render with Confidence Scores]
+    A["User Profile Input<br/>Age, Height, Weight, Preference"] --> B["Health Condition & BMI Engine"]
+    B --> C["Ideal Caloric Target Calculation"]
+    C --> D["Pre-Trained ML Classifier<br/>RF & Gradient Boosting Models"]
+    D --> E["IFCT 2017 Food Database Query"]
+    E --> F["Macro & Sodium Constraint Filter"]
+    F --> G["Partitioned Meal Outputs<br/>Breakfast (25%), Lunch (35%), Snack (10%), Dinner (30%)"]
+    G --> H["Streamlit UI Render with Confidence Scores"]
 ```
 
 ---
