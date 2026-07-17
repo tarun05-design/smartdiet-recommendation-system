@@ -1,226 +1,107 @@
 # 🍎 SmartDiet — Your Personal Meal Guide
 
-SmartDiet helps you find the right meals for your health situation.
-Whether you're managing diabetes, high blood pressure, weight, or just want to eat better —
-SmartDiet suggests real, authentic regional meals that match your daily calorie goal,
-split across breakfast, lunch, snack, and dinner.
+Personalized daily meal plans matched to your health situation using machine learning & government nutrition tables.
 
-No confusing charts. No medical jargon. Just friendly, practical meal ideas — every day.
+SmartDiet helps you find the right meals for your health condition — whether managing diabetes, high blood pressure, weight, or seeking general wellness. Built with Streamlit and scikit-learn, SmartDiet calculates your daily calorie goal and suggests authentic regional dishes from the Indian Food Composition Tables (IFCT 2017) database.
 
----
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-smartdiet--recommendation.streamlit.app-46E3B7?style=for-the-badge&logo=streamlit&logoColor=black)](https://smartdiet-recommendation.streamlit.app)
 
-## What does SmartDiet do?
-
-You tell SmartDiet your name, age, height, weight, and health situation.
-It then:
-
-1. Calculates your ideal daily calorie goal based on your health condition
-2. Suggests 3 meal options for each part of your day — breakfast, lunch, snack, and dinner
-3. Shows you what's in each meal in plain terms — energy, protein, carbs, fat, and salt
-4. Gives you simple food tips that are specific to your health situation
-
-All 214 meals in the app are authentic regional dishes with nutritional values calculated
-using the Indian Food Composition Tables (IFCT 2017) — a trusted government database.
+![python](https://img.shields.io/badge/python-3.9+-blue?style=flat) ![streamlit](https://img.shields.io/badge/streamlit-1.32+-red?style=flat) ![model](https://img.shields.io/badge/model-random%20forest%20%7C%20gradient%20boosting-orange?style=flat) ![database](https://img.shields.io/badge/dataset-NIN%20IFCT%202017-teal?style=flat) ![license](https://img.shields.io/badge/license-MIT-green?style=flat)
 
 ---
 
-## Who is this for?
+## ⚡ Key Highlights & Value Proposition
 
-- People managing **diabetes** who want to keep their blood sugar steady
-- People with **high blood pressure** who need to watch their salt intake
-- People working on **weight management** who want satisfying, lower-calorie meals
-- Anyone who simply wants to **eat healthier** with guidance
-
----
-
-## How to use the app
-
-### Step 1 — Fill in your details (left panel)
-
-- Enter your **name** (optional, just makes it friendlier)
-- Set your **age** using the slider
-- Enter your **height** in centimetres and **weight** in kilograms
-- The app will automatically show your fitness level
-
-### Step 2 — Choose your health situation
-
-Pick the option that best describes you:
-
-| Option | Means |
-|--------|-------|
-| I'm Healthy | You're in good health and want to eat balanced |
-| Managing Diabetes | You have pre-diabetes, type 1, or type 2 diabetes |
-| Managing Blood Pressure | You have high blood pressure (hypertension) |
-| Managing My Weight | You want to lose weight gradually and healthily |
-
-### Step 3 — Select what you eat
-
-Choose whether you prefer:
-- **Only Vegetarian** — no meat or eggs
-- **Non-Vegetarian** — includes meat, fish, and eggs
-- **Both are fine** — you eat everything
-
-### Step 4 — Click "Show My Meal Plan"
-
-That's it! Your personalised meal plan will appear on the right side of the screen.
+- **Scientific Database Integration**: Integrates nutritional breakdowns for 214+ authentic dishes based on the **Indian Food Composition Tables (IFCT 2017)** from the National Institute of Nutrition.
+- **ML Recommendation Engine**: Employs pre-trained **Random Forest** and **Gradient Boosting** classifiers to score dish suitability with explicit confidence percentages (e.g., $90\%$ match score).
+- **Proportional Caloric Splitting**: Automatically partitions target caloric goals across daily meals: **Breakfast (25%)**, **Lunch (35%)**, **Snack (10%)**, and **Dinner (30%)**.
+- **Condition-Specific Optimization**: Tailors macro and sodium limits for specific health contexts:
+  - 🩸 **Diabetes Management**: Keeps glycemic impact steady with high-fiber options.
+  - 🫀 **Hypertension Control**: Regulates sodium threshold per meal.
+  - ⚖️ **Weight Management**: Optimizes protein-to-carbohydrate ratios.
 
 ---
 
-## Understanding your results
+## 🛠️ Tech Stack & Architecture
 
-### Your Health Assessment
-
-After you click the button, you'll see a coloured card that shows your health profile.
-It includes a confidence bar — this tells you how sure the app is about its recommendation.
-A higher number (like 90%) means the suggestion is very well matched to your profile.
-
-### Your Meal Plan
-
-Your meals are spread across the day like this:
-
-| Meal | Share of your daily goal |
-|------|--------------------------|
-| Breakfast | 25% of your daily calories |
-| Lunch | 35% of your daily calories |
-| Snack | 10% of your daily calories |
-| Dinner | 30% of your daily calories |
-
-Each slot shows 3 options. The one marked **✅ Best match for you** is the most suitable
-based on your condition. Click any meal to expand it and see the full nutritional breakdown.
-
-### What the nutrients mean
-
-| Label | What it means in simple terms |
-|-------|-------------------------------|
-| 🔥 Energy (kcal) | How much fuel this meal gives your body |
-| 💪 Protein | Helps build and repair muscles — especially important for weight management |
-| 🌾 Carbs | Your body's main energy source — high in rice-based meals |
-| 🧈 Fat | Needed in small amounts for health — too much leads to weight gain |
-| 🧂 Salt (sodium) | High amounts can raise blood pressure — watch this if you have hypertension |
-
-### Today's Nutrition at a Glance
-
-At the bottom, you'll see a summary of everything your four meals add up to.
-If you're close to your daily goal, you'll see a green "You're on track!" message.
-If you're a little over or under, you'll get a gentle suggestion to swap one meal.
-
-### Your food tips
-
-At the very bottom, you'll find 4 simple, practical tips for your health situation.
-These are written in plain language — no medical terms — and are easy to follow every day.
+| Layer | Technology | Purpose |
+|---|---|---|
+| **UI Framework** | [Streamlit](https://streamlit.io/) | Interactive client interface & responsive input sidebars |
+| **Recommendation Engine** | [scikit-learn](https://scikit-learn.org/) | Pre-trained Random Forest & Gradient Boosting scoring models |
+| **Data Engine** | [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/) | Dataset indexing, calorie calculations, & macro aggregations |
+| **Model Persistence** | `joblib` / `pickle` | Serialized model artifacts (`rf_model.pkl`, `scaler.pkl`, encoders) |
+| **Visual Analytics** | [Matplotlib](https://matplotlib.org/) | Daily macro breakdown charts & calorie progression graphs |
 
 ---
 
-## How to install and run SmartDiet
+## 🏗️ System Workflow & Recommendation Pipeline
 
-### What you need
-
-- A computer with Python installed (version 3.8 or newer)
-- Internet connection (only needed for the first setup)
-
-### Step 1 — Download the project files
-
-Download the SmartDiet folder and make sure it looks like this:
-
+```mermaid
+flowchart TD
+    A[User Profile Input\nAge, Height, Weight, Preference] --> B[Health Condition & BMI Engine]
+    B --> C[Ideal Caloric Target Calculation]
+    C --> D[Pre-Trained ML Classifier\nRF & Gradient Boosting Models]
+    D --> E[IFCT 2017 Food Database Query]
+    E --> F[Macro & Sodium Constraint Filter]
+    F --> G["Partitioned Meal Outputs\nBreakfast (25%) | Lunch (35%) | Snack (10%) | Dinner (30%)"]
+    G --> H[Streamlit UI Render with Confidence Scores]
 ```
+
+---
+
+## 📁 Repository Structure
+
+```tree
 smartdiet/
-├── app.py
-├── requirements.txt
-├── README.md
-└── model/
-    ├── rf_model.pkl
-    ├── gb_model.pkl
-    ├── scaler.pkl
-    ├── le_target.pkl
-    ├── le_diet.pkl
-    ├── le_meal.pkl
-    ├── le_dish.pkl
-    ├── meals_extended_labelled.csv
-    └── meta.json
+├── app.py                      # Main Streamlit application entrypoint
+├── requirements.txt            # Dependency manifest
+├── model/
+│   ├── rf_model.pkl            # Trained Random Forest classifier
+│   ├── gb_model.pkl            # Trained Gradient Boosting classifier
+│   ├── scaler.pkl              # Feature scaler artifact
+│   ├── le_*.pkl                # Label encoders (diet, meal, dish target)
+│   ├── meals_extended_labelled.csv # IFCT 2017 nutritional dataset
+│   └── meta.json               # Model training metadata
+└── README.md                   # Documentation
 ```
 
-### Step 2 — Open Terminal or Command Prompt
+---
 
-On **Windows**: Press `Win + R`, type `cmd`, press Enter
-On **Mac**: Press `Cmd + Space`, type `Terminal`, press Enter
+## 🚀 Quick Start & Local Setup
 
-Navigate to your SmartDiet folder:
+### 1. Clone & Set Up Directory
+```bash
+git clone https://github.com/tarun05-design/smartdiet-recommendation-system.git
+cd smartdiet-recommendation-system
 ```
-cd path/to/your/smartdiet
+
+### 2. Create Virtual Environment
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-### Step 3 — Install the required libraries
-
-Run this command once:
-```
+### 3. Install Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-This will automatically install everything the app needs.
-
-### Step 4 — Run the app
-
-```
+### 4. Run Application
+```bash
 streamlit run app.py
 ```
-
-Your browser will open automatically and you'll see the SmartDiet app.
-If it doesn't open, go to: **http://localhost:8501**
-
-### Step 5 — Use the app
-
-Fill in your details on the left, and click **Show My Meal Plan**. That's it!
+Access the dashboard at `http://localhost:8501`.
 
 ---
 
-## List of libraries the app uses
+## 👤 Author & Connect
 
-| Library | What it does |
-|---------|-------------|
-| streamlit | Creates the web interface you see in your browser |
-| scikit-learn | Powers the health assessment recommendation engine |
-| pandas | Reads and manages the meal database |
-| numpy | Does the number calculations behind the scenes |
-| matplotlib | Draws the charts and nutrition graphs |
-| joblib | Loads the trained recommendation model |
-
-To install all of them at once, just run:
-```
-pip install streamlit scikit-learn pandas numpy matplotlib joblib
-```
-
----
-
-## Frequently asked questions
-
-**Is this a medical app?**
-No. SmartDiet is a meal guidance tool designed to help you make healthier food choices.
-It is not a substitute for medical advice. Always consult your doctor or a registered
-dietitian before making major changes to your diet, especially if you have a health condition.
-
-**Can I use this every day?**
-Yes! You can open the app every day and get a fresh set of meal suggestions.
-
-**What if I don't see meals I like?**
-Try switching your diet preference to "Both are fine" — this opens up more options.
-We're continually working to add more meal variety.
-
-**Why does the app sometimes adjust my condition?**
-If you say you're healthy but your BMI suggests otherwise, the app gently adjusts
-your meal plan to better support your actual health situation. This is done to give
-you the most helpful recommendations possible.
-
-**Can I share this with my family?**
-Absolutely! Each family member can enter their own details and get a personalised plan.
-
----
-
-## Credits
-
-- Nutritional data from the **Indian Food Composition Tables (IFCT) 2017**
-  published by the National Institute of Nutrition, Hyderabad
-- Built with Streamlit, scikit-learn, and a lot of care 🍎
-
----
-
-*SmartDiet is an academic project. It is not a certified medical product.*
+**Tarun P** — Machine Learning & Full Stack Developer
+- 🌐 Portfolio: [tarun-portfolio.vercel.app](https://tarun-portfolio.vercel.app)
+- 🐙 GitHub: [@tarun05-design](https://github.com/tarun05-design)
+- 📧 Email: [tarunparthasarathy65@gmail.com](mailto:tarunparthasarathy65@gmail.com)
